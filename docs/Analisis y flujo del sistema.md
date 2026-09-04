@@ -1,0 +1,7 @@
+Con solo 2 roles el flujo es simple. Te lo muestro en tres partes: primero cómo se separa el acceso según el rol, y después el detalle de cada uno.El `RolesGuard` de Nest lee el rol del token y el frontend redirige a una ruta protegida distinta según ese rol — no hay pantallas compartidas con permisos condicionales, son dos árboles de rutas separados. Ahora el detalle de cada panel.Ese último paso es clave: el profesor solo registra evaluaciones, y la lista de "pendientes" se calcula sola con una query — no es un módulo que el profesor toca directamente. Ahora el panel de administración/vicedecana, que es el rol con todo el CRUD:Ese es todo el flujo del MVP. Resumiendo la lógica detrás:
+
+- **Nadie marca "pendiente" a mano.** Es una consulta derivada: estudiante con al menos una evaluación en estado pendiente aparece ahí. Eso simplifica mucho el backend y evita inconsistencias.
+- **El profesor solo toca lo suyo** — sus asignaturas, sus estudiantes, sus evaluaciones. No entra a estudiantes ni asignaturas de otros.
+- **El admin/vicedecana es el único con CRUD completo**, y el reporte final cruza justo lo que pedía el documento original: asignatura–profesor–semestre–municipio, filtrando sobre los mismos datos que ya cargaron estudiantes y profesores.
+
+Eso es literalmente todo lo que hay que construir en los 3 días — dos árboles de pantallas, un guard de rol, y una query derivada para pendientes. Cuando quieras seguimos con el schema de Prisma para arrancar.

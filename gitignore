@@ -1,0 +1,36 @@
+# Dependencias
+node_modules/
+**/node_modules/
+
+# Entornos y secretos
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Backend (NestJS)
+backend/dist/
+backend/*.log
+
+# Prisma
+backend/prisma/*.db
+backend/prisma/migrations/dev.db*
+
+# Frontend (Vite/React)
+frontend/dist/
+frontend/.vite/
+
+# Logs generales
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Editores / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
