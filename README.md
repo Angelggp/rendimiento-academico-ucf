@@ -1,4 +1,4 @@
-# Rendimiento académico UC
+# Rendimiento académico UCF
 
 Sistema de control de rendimiento académico para la modalidad semipresencial —
 Facultad de Ingeniería, Universidad de Cienfuegos.
