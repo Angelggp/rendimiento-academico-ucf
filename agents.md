@@ -26,7 +26,7 @@ Web system for the **Faculty of Engineering at the University of Cienfuegos** th
 ## Code conventions
 
 - **Package manager:** Use `pnpm` for all package operations (install, add, remove).
-- All generated code, variable names, function names, and comments must be **in English**.
+- All generated code, variable names, function names, and comments must be **in Spanish** (domain-specific terms like class names, DTOs, and Prisma models can stay in English for consistency with the framework).
 - Generate CRUDs with `nest g resource <name>`.
 - Roles are enforced with `@Roles('admin')` or `@Roles('professor')` decorator per endpoint.
 - **"Pending" status** is always a derived query, never a stored field.
