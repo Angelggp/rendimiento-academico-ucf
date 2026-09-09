@@ -1,49 +1,42 @@
-Leí el documento. Te armo el resumen, el alcance realista y la propuesta técnica.
+Acá va el resumen corregido con todo lo que definimos desde ese primer mensaje — cambiaron los roles, el alcance de evaluaciones/acciones correctivas, y el tiempo real disponible.
 
 ## De qué va el proyecto
 
-Es un sistema para la Facultad de Ingeniería de la Universidad de Cienfuegos que digitaliza el control del rendimiento académico en la modalidad semipresencial. Hoy todo se lleva en planillas, papel y correos, y eso genera problemas concretos: no se detecta a tiempo quién no termina el semestre, no hay seguimiento de quién abandona grupos colaborativos, no hay visibilidad del estado de evaluaciones por asignatura, no se puede filtrar por municipio de procedencia (Cienfuegos, Palmira, Abreus, etc.), y no hay reportes cruzados de asignatura–profesor–semestre.
+Es un sistema para la Facultad de Ingeniería de la Universidad de Cienfuegos que digitaliza el control del rendimiento académico en la modalidad semipresencial. Hoy todo se lleva en planillas, papel y correos, y eso genera problemas concretos: no se detecta a tiempo quién no termina el semestre, no hay seguimiento de quién abandona grupos colaborativos, no hay visibilidad del estado de evaluaciones por asignatura, no se puede filtrar por municipio de procedencia, y no hay reportes cruzados de asignatura–profesor–semestre.
 
-El documento define **8 funcionalidades** (gestión de estudiantes, control de asignaturas, seguimiento de pendientes, trazabilidad de grupos, evaluaciones sistemáticas, bitácora de acciones correctivas, reportes, reportes geográficos) y **6 actores** (Vicedecana, Profesor, Jefe de carrera, Decano, Estudiante, Administrador).
+El documento original define 8 funcionalidades y 6 actores (Vicedecana, Profesor, Jefe de carrera, Decano, Estudiante, Administrador) — un sistema completo de gestión académica, imposible de hacer bien en el tiempo disponible. La estrategia sigue siendo la misma: recortar sin mentir sobre el alcance, y documentar explícitamente qué queda para la continuidad en 4to año.
 
-Eso es un sistema completo de gestión académica — imposible de hacer bien en 3 días. Para unas prácticas de 3er año que van a tener continuidad en 4to, lo correcto es recortar sin mentir sobre el alcance: entregar un **núcleo funcional real y demostrable**, y dejar documentado explícitamente qué queda para la siguiente fase.
+## Alcance MVP (revisado)
 
-## Alcance MVP (lo que sí entra)
-
-**Roles** — reduce de 6 actores a 2 para no perder tiempo en un sistema de permisos granular:
-- **Administrador/Vicedecana**: acceso total (CRUD de todo).
-- **Profesor**: solo ve y gestiona sus asignaturas y evaluaciones.
+**Roles** — 3 roles funcionales reales (Administrador y Vicedecana son el mismo nivel de acceso, con dos nombres):
+- **Administrador/Vicedecana**: acceso total — carreras, asignaturas, invitaciones, pendientes y reportes.
+- **Profesor**: solo ve y gestiona sus asignaturas, sus evaluaciones y sus acciones correctivas.
+- **Estudiante**: acceso de solo lectura a su propio perfil, evaluaciones y acciones correctivas.
 
 **Módulos:**
-1. Gestión de estudiantes (CRUD + municipio de procedencia)
-2. Gestión de asignaturas (CRUD, vinculada a profesor, semestre y facultad)
-3. Registro de evaluaciones sistemáticas (CRUD simple con estado aprobada/pendiente)
-4. Vista de "estudiantes pendientes" — un query/filtro sobre las evaluaciones, no un módulo aparte
-5. Reporte filtrable por asignatura–profesor–semestre–municipio (tabla, exportar a CSV si sobra tiempo)
+1. Autenticación por **código de invitación** — el admin genera un código con el rol, profesor/estudiante se registran ellos mismos con ese código (alta manual queda como respaldo).
+2. Gestión de carreras (CRUD, con plan de estudio).
+3. Gestión de asignaturas (CRUD, vinculada a profesor y semestre).
+4. Registro de evaluaciones: **una fila por estudiante-asignatura** que se actualiza a lo largo del semestre (no se acumula historial), con estado aprobada/pendiente.
+5. **Bitácora de acciones correctivas completa** — el profesor registra cada acción (texto, fecha), queda como historial inmutable, visible por el estudiante afectado.
+6. Vista de "estudiantes pendientes" — derivada del estado de las evaluaciones, no un módulo aparte.
+7. Reporte filtrable por asignatura–profesor–semestre–municipio.
+8. Perfil propio para los 3 roles, con vista de solo lectura para el estudiante.
 
-## Fuera de alcance (para 4to año — decirlo así de claro en la defensa)
+## Fuera de alcance (para 4to año)
 
-- Bitácora completa de acciones correctivas (en v1 basta un campo de "observaciones" de texto en el estudiante)
-- Trazabilidad de grupos colaborativos (requiere modelar grupos, se pospone)
-- Roles de Jefe de carrera, Decano y Estudiante (solo lectura extra)
-- Reportes geográficos con mapas/gráficos avanzados
-- Notificaciones y dashboards visuales
+- Trazabilidad de grupos colaborativos (requiere modelar grupos, se pospone).
+- Roles de Jefe de carrera y Decano (solo lectura extra sobre lo que ya existe).
+- Reportes geográficos con mapas/gráficos avanzados.
+- Notificaciones y dashboards visuales.
+- Gestión de períodos académicos (año lectivo, curso del estudiante) — el sistema queda pensado para un ciclo escolar; distinguir datos entre años reales es trabajo de la siguiente fase.
 
-Esto es defendible frente a un tribunal: mostrás un sistema que ya resuelve el dolor principal (visibilidad de pendientes y reportes cruzados) y dejás claro que el resto es la hoja de ruta de 4to año.
+*(La bitácora de acciones correctivas y el rol de estudiante, que originalmente estaban acá, ya entraron al alcance.)*
 
 ## Tecnologías
 
-Tu elección (Nest + React/Vite + shadcn) está bien para una tesis de ing. informática — es defendible académicamente y es stack real de la industria. Ajustaría esto para ganar velocidad:
+Sin cambios respecto a la propuesta original — Nest + Prisma + Postgres (Docker) en el backend, React + Vite + shadcn/ui + TanStack Query/Table + React Hook Form + Zod en el frontend. Un detalle práctico ya resuelto en el setup: al instalar Prisma hay que fijar la versión estable (`7.10.0` al momento de armar esto), porque el paquete por defecto en npm resolvió una release candidate de Prisma 8 con un flujo distinto.
 
-- **ORM: Prisma en vez de TypeORM.** Con 3 días, el schema declarativo + migraciones automáticas de Prisma te ahorra muchísimo tiempo de boilerplate frente a TypeORM con decoradores.
-- **DB: Postgres en Docker Compose.** Un solo `docker compose up` y listo, y queda mejor justificado en el documento de tesis que SQLite.
-- **`nest g resource <nombre>`**: genera controller/service/module/DTOs de un CRUD completo en segundos. Úsalo para estudiantes, asignaturas y evaluaciones.
-- **Auth: JWT simple con `@nestjs/passport`** + un `RolesGuard` básico (2 roles, no compliques con permisos por endpoint granulares).
-- **Frontend**: a React+Vite+shadcn súmale:
-  - **TanStack Query** para fetching/caching — evita escribir a mano loading/error states en cada pantalla.
-  - **TanStack Table** para la vista de reportes con filtros y orden.
-  - **React Hook Form + Zod** para formularios — shadcn ya trae el componente `Form` pensado para esta combinación.
+## Tiempo real disponible
 
-Mi única sugerencia "fuera de la caja": si en algún momento ves que el tiempo no alcanza, **Supabase** (Postgres + Auth + API instantánea) te ahorraría todo el backend y dejaría solo el frontend por construir. Lo menciono como opción de rescate, no como recomendación principal — si el tribunal espera ver dominio de Nest como backend propio (típico en estas prácticas), quedate con Nest.
-
-Ahora el plan de 3 días:Si querés, en el próximo mensaje te armo el schema de Prisma completo y la estructura inicial del proyecto Nest para que arranquen el Día 1 sin perder tiempo.
+Ya no son 3 días: son **7 días hábiles**, de los cuales el Día 1 (repo, docker-compose, Nest + Prisma inicializados) está prácticamente cerrado, y hay que repartir el tiempo entre desarrollo e informe — no dejar el informe amontonado al final.
