@@ -6,7 +6,7 @@ import { defineConfig, env } from "prisma/config";
 const backendDir = path.dirname(fileURLToPath(import.meta.url));
 
 cargarVariables({
-  path: path.resolve(backendDir, "..", ".env"),
+  path: path.resolve(backendDir, ".env"),
 });
 
 export default defineConfig({

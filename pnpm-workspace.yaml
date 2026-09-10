@@ -2,6 +2,6 @@ packages:
   - backend
   - frontend
 
-onlyBuiltDependencies:
-  - '@prisma/engines'
-  - prisma
+allowBuilds:
+  '@prisma/engines': true
+  prisma: true
