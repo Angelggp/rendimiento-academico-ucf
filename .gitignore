@@ -2,34 +2,74 @@
 node_modules/
 **/node_modules/
 
-# Entornos y secretos
-.env
-.env.local
-.env.*.local
-!.env.example
-
-# Backend (NestJS)
-backend/dist/
-backend/*.log
-
-# Prisma
-backend/prisma/*.db
-backend/prisma/migrations/dev.db*
-backend/src/generated/
-
-# Frontend (Vite/React)
-frontend/dist/
-frontend/.vite/
-
-# Logs generales
+# Logs
+logs/
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-*.log
+pnpm-debug.log*
+lerna-debug.log*
 
-# Editores / OS
-.vscode/
+# Build / Compilación
+**/dist/
+**/build/
+
+# Prisma
+**/prisma/*.db
+**/prisma/migrations/dev.db*
+**/src/generated/
+
+# Tests / Coverage
+**/coverage/
+**/.nyc_output/
+
+# Entorno
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+!.env.example
+
+# Temp
+.temp/
+.tmp/
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Diagnosticos Node.js
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Frontend especifico
+**/dist-ssr/
+**/.vite/
+
+# Editores / IDEs
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
 .idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS
 .DS_Store
 Thumbs.db
 
