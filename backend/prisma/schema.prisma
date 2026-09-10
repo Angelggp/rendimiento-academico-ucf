@@ -1,19 +1,36 @@
 generator client {
-  provider     = "prisma-client"
-  output       = "../src/generated/prisma"
-  runtime      = "nodejs"
-  moduleFormat = "esm"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
 }
 
+// ==========================================
+// ENUMS
+// ==========================================
+
 enum Rol {
   ADMIN
-  VICE_DEAN
+  VICEDECANO
   PROFESOR
   ESTUDIANTE
+}
+
+enum Municipio {
+  CIENFUEGOS
+  ABREUS
+  CRUCES
+  CUMANAYAGUA
+  LAJAS
+  PALMIRA
+  RODAS
+  AGUADA_DE_PASAJEROS
+}
+
+enum Plan {
+  D
+  E
 }
 
 enum EstadoEvaluacion {
@@ -21,71 +38,128 @@ enum EstadoEvaluacion {
   PENDIENTE
 }
 
+// ==========================================
+// MODELOS
+// ==========================================
+
 model Usuario {
   id        String   @id @default(uuid())
-  nombre    String
   email     String   @unique
   password  String
-  rol       Rol      @default(ESTUDIANTE)
-  creadoEn  DateTime @default(now())
-  actualizadoEn DateTime @updatedAt
+  nombre    String
+  apellidos String
+  rol       Rol
+  activo    Boolean  @default(true)
+  telefono  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  // Relaciones: un usuario con rol ESTUDIANTE tiene un Estudiante;
-  // con rol PROFESOR tiene un Profesor; ADMIN/VICE_DEAN no tienen extensión.
-  estudiante   Estudiante?
-  profesor     Profesor?
+  profesor        Profesor?
+  estudiante      Estudiante?
+  invitacionUsada Invitacion?
+
+  @@map("Usuario")
 }
 
-model Estudiante {
-  id        String   @id @default(uuid())
-  nombre    String
-  observaciones String?
-  municipio  String   // municipio de origen; valor estático de la lista fija de Cienfuegos
-  creadoEn  DateTime @default(now())
-  actualizadoEn DateTime @updatedAt
+model Invitacion {
+  id         String    @id @default(uuid())
+  codigo     String    @unique
+  rol        Rol // en la práctica, solo PROFESOR o ESTUDIANTE
+  usado      Boolean   @default(false)
+  usadoPorId String?   @unique
+  usadoPor   Usuario?  @relation(fields: [usadoPorId], references: [id])
+  expiresAt  DateTime?
+  createdAt  DateTime  @default(now())
 
-  usuarioId String   @unique
-  usuario   Usuario  @relation(fields: [usuarioId], references: [id])
-
-  evaluaciones Evaluacion[]
+  @@map("Invitacion")
 }
 
 model Profesor {
   id        String   @id @default(uuid())
-  creadoEn  DateTime @default(now())
-  actualizadoEn DateTime @updatedAt
-
   usuarioId String   @unique
   usuario   Usuario  @relation(fields: [usuarioId], references: [id])
+  createdAt DateTime @default(now())
 
-  asignaturas Asignatura[]
+  asignaturas      Asignatura[]
+  accionesEmitidas AccionCorrectiva[]
+
+  @@map("Profesor")
+}
+
+model Estudiante {
+  id              String    @id @default(uuid())
+  usuarioId       String    @unique
+  usuario         Usuario   @relation(fields: [usuarioId], references: [id])
+  carreraId       String
+  carrera         Carrera   @relation(fields: [carreraId], references: [id])
+  carnetIdentidad String    @unique
+  municipio       Municipio
+  observaciones   String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  evaluaciones      Evaluacion[]
+  accionesRecibidas AccionCorrectiva[]
+
+  @@map("Estudiante")
+}
+
+model Carrera {
+  id        String   @id @default(uuid())
+  nombre    String
+  plan      Plan
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  estudiantes Estudiante[]
+
+  @@map("Carrera")
 }
 
 model Asignatura {
-  id        String   @id @default(uuid())
-  nombre    String
-  semestre  Int
-  creadoEn  DateTime @default(now())
-  actualizadoEn DateTime @updatedAt
-
+  id         String   @id @default(uuid())
+  nombre     String
+  semestre   Int
   profesorId String
   profesor   Profesor @relation(fields: [profesorId], references: [id])
+  activo     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  evaluaciones Evaluacion[]
+  evaluaciones        Evaluacion[]
+  accionesCorrectivas AccionCorrectiva[]
+
+  @@map("Asignatura")
 }
 
 model Evaluacion {
-  id        String           @id @default(uuid())
-  estado    EstadoEvaluacion @default(PENDIENTE)
-  fecha     DateTime         @default(now())
-  creadoEn  DateTime         @default(now())
-  actualizadoEn DateTime     @updatedAt
+  id           String           @id @default(uuid())
+  estudianteId String
+  estudiante   Estudiante       @relation(fields: [estudianteId], references: [id])
+  asignaturaId String
+  asignatura   Asignatura       @relation(fields: [asignaturaId], references: [id])
+  calificacion Int?
+  estado       EstadoEvaluacion @default(PENDIENTE)
+  fecha        DateTime         @default(now())
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
 
+  // Una sola evaluación resume el estado por estudiante-asignatura.
+  @@unique([estudianteId, asignaturaId])
+  @@map("Evaluacion")
+}
+
+model AccionCorrectiva {
+  id           String     @id @default(uuid())
   estudianteId String
   estudiante   Estudiante @relation(fields: [estudianteId], references: [id])
-
   asignaturaId String
   asignatura   Asignatura @relation(fields: [asignaturaId], references: [id])
+  profesorId   String
+  profesor     Profesor   @relation(fields: [profesorId], references: [id])
+  contenido    String
+  fecha        DateTime   @default(now())
+  createdAt    DateTime   @default(now())
 
-  @@unique([estudianteId, asignaturaId]) // un estudiante solo tiene una evaluación por asignatura
+  @@map("AccionCorrectiva")
 }
