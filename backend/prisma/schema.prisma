@@ -1,0 +1,91 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  runtime      = "nodejs"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Rol {
+  ADMIN
+  VICE_DEAN
+  PROFESOR
+  ESTUDIANTE
+}
+
+enum EstadoEvaluacion {
+  APROBADA
+  PENDIENTE
+}
+
+model Usuario {
+  id        String   @id @default(uuid())
+  nombre    String
+  email     String   @unique
+  password  String
+  rol       Rol      @default(ESTUDIANTE)
+  creadoEn  DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  // Relaciones: un usuario con rol ESTUDIANTE tiene un Estudiante;
+  // con rol PROFESOR tiene un Profesor; ADMIN/VICE_DEAN no tienen extensión.
+  estudiante   Estudiante?
+  profesor     Profesor?
+}
+
+model Estudiante {
+  id        String   @id @default(uuid())
+  nombre    String
+  observaciones String?
+  municipio  String   // municipio de origen; valor estático de la lista fija de Cienfuegos
+  creadoEn  DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  usuarioId String   @unique
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id])
+
+  evaluaciones Evaluacion[]
+}
+
+model Profesor {
+  id        String   @id @default(uuid())
+  creadoEn  DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  usuarioId String   @unique
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id])
+
+  asignaturas Asignatura[]
+}
+
+model Asignatura {
+  id        String   @id @default(uuid())
+  nombre    String
+  semestre  Int
+  creadoEn  DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  profesorId String
+  profesor   Profesor @relation(fields: [profesorId], references: [id])
+
+  evaluaciones Evaluacion[]
+}
+
+model Evaluacion {
+  id        String           @id @default(uuid())
+  estado    EstadoEvaluacion @default(PENDIENTE)
+  fecha     DateTime         @default(now())
+  creadoEn  DateTime         @default(now())
+  actualizadoEn DateTime     @updatedAt
+
+  estudianteId String
+  estudiante   Estudiante @relation(fields: [estudianteId], references: [id])
+
+  asignaturaId String
+  asignatura   Asignatura @relation(fields: [asignaturaId], references: [id])
+
+  @@unique([estudianteId, asignaturaId]) // un estudiante solo tiene una evaluación por asignatura
+}

@@ -15,6 +15,7 @@ backend/*.log
 # Prisma
 backend/prisma/*.db
 backend/prisma/migrations/dev.db*
+backend/src/generated/
 
 # Frontend (Vite/React)
 frontend/dist/
