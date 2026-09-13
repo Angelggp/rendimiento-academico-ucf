@@ -40,6 +40,9 @@ enum EstadoEvaluacion {
 
 // ==========================================
 // MODELOS
+// Alcance: RF01-RF07. Invitacion y AccionCorrectiva quedan fuera de esta
+// entrega (no aparecen en los RF definidos) y se documentan como roadmap
+// para la tesis.
 // ==========================================
 
 model Usuario {
@@ -54,24 +57,10 @@ model Usuario {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  profesor        Profesor?
-  estudiante      Estudiante?
-  invitacionUsada Invitacion?
+  profesor   Profesor?
+  estudiante Estudiante?
 
   @@map("Usuario")
-}
-
-model Invitacion {
-  id         String    @id @default(uuid())
-  codigo     String    @unique
-  rol        Rol // en la práctica, solo PROFESOR o ESTUDIANTE
-  usado      Boolean   @default(false)
-  usadoPorId String?   @unique
-  usadoPor   Usuario?  @relation(fields: [usadoPorId], references: [id])
-  expiresAt  DateTime?
-  createdAt  DateTime  @default(now())
-
-  @@map("Invitacion")
 }
 
 model Profesor {
@@ -80,8 +69,7 @@ model Profesor {
   usuario   Usuario  @relation(fields: [usuarioId], references: [id])
   createdAt DateTime @default(now())
 
-  asignaturas      Asignatura[]
-  accionesEmitidas AccionCorrectiva[]
+  asignaturas Asignatura[]
 
   @@map("Profesor")
 }
@@ -98,8 +86,7 @@ model Estudiante {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  evaluaciones      Evaluacion[]
-  accionesRecibidas AccionCorrectiva[]
+  evaluaciones Evaluacion[]
 
   @@map("Estudiante")
 }
@@ -108,6 +95,7 @@ model Carrera {
   id        String   @id @default(uuid())
   nombre    String
   plan      Plan
+  activo    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -126,8 +114,7 @@ model Asignatura {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  evaluaciones        Evaluacion[]
-  accionesCorrectivas AccionCorrectiva[]
+  evaluaciones Evaluacion[]
 
   @@map("Asignatura")
 }
@@ -147,19 +134,4 @@ model Evaluacion {
   // Una sola evaluación resume el estado por estudiante-asignatura.
   @@unique([estudianteId, asignaturaId])
   @@map("Evaluacion")
-}
-
-model AccionCorrectiva {
-  id           String     @id @default(uuid())
-  estudianteId String
-  estudiante   Estudiante @relation(fields: [estudianteId], references: [id])
-  asignaturaId String
-  asignatura   Asignatura @relation(fields: [asignaturaId], references: [id])
-  profesorId   String
-  profesor     Profesor   @relation(fields: [profesorId], references: [id])
-  contenido    String
-  fecha        DateTime   @default(now())
-  createdAt    DateTime   @default(now())
-
-  @@map("AccionCorrectiva")
 }
