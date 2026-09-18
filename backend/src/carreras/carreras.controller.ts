@@ -12,15 +12,30 @@ import { CarrerasService } from './carreras.service.js';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard.js';
 import { RolesGuard } from '../common/guards/roles.guard.js';
 import { Roles } from '../common/decorators/roles.decorator.js';
+import { IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { Plan } from '@prisma/client';
 
 class CrearCarreraDto {
+  @IsString()
+  @IsNotEmpty()
   nombre: string;
-  plan: 'D' | 'E';
+
+  @IsEnum(Plan)
+  plan: Plan;
 }
 
 class ActualizarCarreraDto {
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
   nombre?: string;
-  plan?: 'D' | 'E';
+
+  @IsOptional()
+  @IsEnum(Plan)
+  plan?: Plan;
+
+  @IsOptional()
+  @IsBoolean()
   activo?: boolean;
 }
 
@@ -35,7 +50,7 @@ export class CarrerasController {
     return this.carrerasService.crear(dto);
   }
 
-  @Roles('VICEDECANO')
+  @Roles('VICEDECANO', 'ESTUDIANTE')
   @Get()
   listar() {
     return this.carrerasService.listar();

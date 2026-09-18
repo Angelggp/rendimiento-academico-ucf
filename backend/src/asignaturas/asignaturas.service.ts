@@ -1,6 +1,5 @@
 import {
   BadRequestException,
-  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -36,7 +35,16 @@ export class AsignaturasService {
       include: {
         profesor: {
           include: {
-            usuario: true,
+            usuario: {
+              select: {
+                id: true,
+                email: true,
+                nombre: true,
+                apellidos: true,
+                rol: true,
+                activo: true,
+              },
+            },
           },
         },
       },
@@ -73,7 +81,16 @@ export class AsignaturasService {
       include: {
         profesor: {
           include: {
-            usuario: true,
+            usuario: {
+              select: {
+                id: true,
+                email: true,
+                nombre: true,
+                apellidos: true,
+                rol: true,
+                activo: true,
+              },
+            },
           },
         },
       },
@@ -109,7 +126,16 @@ export class AsignaturasService {
       include: {
         profesor: {
           include: {
-            usuario: true,
+            usuario: {
+              select: {
+                id: true,
+                email: true,
+                nombre: true,
+                apellidos: true,
+                rol: true,
+                activo: true,
+              },
+            },
           },
         },
       },
@@ -129,6 +155,18 @@ export class AsignaturasService {
     });
   }
 
+  async obtenerPorProfesorAutenticado(usuarioActual: any) {
+    const profesor = await this.prisma.profesor.findUnique({
+      where: { usuarioId: usuarioActual.id },
+    });
+
+    if (!profesor) {
+      throw new NotFoundException('Perfil de profesor no encontrado');
+    }
+
+    return this.obtenerPorProfesor(profesor.id);
+  }
+
   async obtenerPorProfesor(profesorId: string) {
     const profesor = await this.prisma.profesor.findUnique({ where: { id: profesorId } });
 
@@ -141,7 +179,16 @@ export class AsignaturasService {
       include: {
         profesor: {
           include: {
-            usuario: true,
+            usuario: {
+              select: {
+                id: true,
+                email: true,
+                nombre: true,
+                apellidos: true,
+                rol: true,
+                activo: true,
+              },
+            },
           },
         },
       },

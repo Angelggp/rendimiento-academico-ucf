@@ -12,12 +12,11 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard.js';
 import { RolesGuard } from '../common/guards/roles.guard.js';
 import { Roles } from '../common/decorators/roles.decorator.js';
 import { ProfesoresService } from './profesores.service.js';
-
-class CrearPerfilProfesorDto {
-  usuarioId?: string;
-}
+import { IsOptional, IsUUID } from 'class-validator';
 
 class ActualizarProfesorDto {
+  @IsOptional()
+  @IsUUID()
   usuarioId?: string;
 }
 
@@ -26,7 +25,7 @@ class ActualizarProfesorDto {
 export class ProfesoresController {
   constructor(private readonly profesoresService: ProfesoresService) {}
 
-  @Roles('VICEDECANO')
+  @Roles('ADMIN', 'VICEDECANO')
   @Get()
   listar() {
     return this.profesoresService.listar();

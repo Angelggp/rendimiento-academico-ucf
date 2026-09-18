@@ -35,15 +35,23 @@ export class UsuariosService {
 
     const passwordHasheada = await bcrypt.hash(dto.password, 10);
 
-    const usuario = await this.prisma.usuario.create({
-      data: {
-        email,
-        password: passwordHasheada,
-        nombre: dto.nombre,
-        apellidos: dto.apellidos,
-        rol: dto.rol,
-        telefono: dto.telefono,
-      },
+    const usuario = await this.prisma.$transaction(async (tx) => {
+      const creado = await tx.usuario.create({
+        data: {
+          email,
+          password: passwordHasheada,
+          nombre: dto.nombre,
+          apellidos: dto.apellidos,
+          rol: dto.rol,
+          telefono: dto.telefono,
+        },
+      });
+
+      if (dto.rol === 'PROFESOR') {
+        await tx.profesor.create({ data: { usuarioId: creado.id } });
+      }
+
+      return creado;
     });
 
     const { password: _, ...resultado } = usuario;
@@ -106,6 +114,7 @@ export class UsuariosService {
       activo?: boolean;
       telefono?: string;
     },
+    usuarioActual?: any,
   ) {
     const usuarioExistente = await this.prisma.usuario.findUnique({
       where: { id },
@@ -113,6 +122,15 @@ export class UsuariosService {
 
     if (!usuarioExistente) {
       throw new NotFoundException('Usuario no encontrado');
+    }
+
+    if (usuarioActual && usuarioActual.id === id) {
+      if (dto.rol && dto.rol !== usuarioExistente.rol) {
+        throw new BadRequestException('No puedes cambiar tu propio rol');
+      }
+      if (dto.activo === false) {
+        throw new BadRequestException('No puedes deshabilitar tu propia cuenta');
+      }
     }
 
     const datosActualizar: any = { ...dto };
@@ -130,11 +148,15 @@ export class UsuariosService {
     return resultado;
   }
 
-  async deshabilitar(id: string) {
+  async deshabilitar(id: string, usuarioActual?: any) {
     const usuario = await this.prisma.usuario.findUnique({ where: { id } });
 
     if (!usuario) {
       throw new NotFoundException('Usuario no encontrado');
+    }
+
+    if (usuarioActual && usuarioActual.id === id) {
+      throw new BadRequestException('No puedes deshabilitar tu propia cuenta');
     }
 
     return this.prisma.usuario.update({

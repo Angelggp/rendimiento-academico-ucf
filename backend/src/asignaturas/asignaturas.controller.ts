@@ -13,17 +13,39 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard.js';
 import { RolesGuard } from '../common/guards/roles.guard.js';
 import { Roles } from '../common/decorators/roles.decorator.js';
 import { AsignaturasService } from './asignaturas.service.js';
+import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 
 class CrearAsignaturaDto {
+  @IsString()
+  @IsNotEmpty()
   nombre: string;
+
+  @IsInt()
+  @Min(1)
   semestre: number;
+
+  @IsUUID()
+  @IsNotEmpty()
   profesorId: string;
 }
 
 class ActualizarAsignaturaDto {
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
   nombre?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
   semestre?: number;
+
+  @IsOptional()
+  @IsBoolean()
   activo?: boolean;
+
+  @IsOptional()
+  @IsUUID()
   profesorId?: string;
 }
 
@@ -64,10 +86,7 @@ export class AsignaturasController {
 
   @Roles('PROFESOR')
   @Get('profesor/:profesorId')
-  obtenerPorProfesor(@Param('profesorId') profesorId: string, @Req() req: any) {
-    if (req.user.rol === 'PROFESOR' && req.user.id !== profesorId) {
-      return this.asignaturasService.obtenerPorProfesor(req.user.id);
-    }
-    return this.asignaturasService.obtenerPorProfesor(profesorId);
+  obtenerMisAsignaturas(@Req() req: any) {
+    return this.asignaturasService.obtenerPorProfesorAutenticado(req.user);
   }
 }
