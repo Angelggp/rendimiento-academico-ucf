@@ -109,12 +109,13 @@ primera vez, completa su perfil: carrera, carnet de identidad y municipio
 5, y la vincula a Carlos.
 
 Carlos se loguea y ve solo "Programación III". Entra y ve a Yusnier en la
-lista de matriculados; como no le ha puesto nota, crea su evaluación: estado
+lista de matriculados; como no le ha puesto nota, su evaluación queda
 `PENDIENTE`, sin calificación. Semanas después, Yusnier entrega su trabajo y
-Carlos edita esa misma fila: calificación `85`, estado `APROBADA`.
+Carlos edita esa misma fila: calificación `4` en escala 0-5 → el sistema la
+marca automáticamente `APROBADA`.
 
 Yusnier se loguea con su cuenta y ve, en su perfil, el estado de
-"Programación III" ya como `APROBADA (85)` — un espejo de lo que Carlos
+"Programación III" ya como `APROBADA (4)` — un espejo de lo que Carlos
 registró, filtrado automáticamente por su propio id de estudiante.
 
 *(El registro de una acción correctiva sobre Yusnier, si hubiera tenido
