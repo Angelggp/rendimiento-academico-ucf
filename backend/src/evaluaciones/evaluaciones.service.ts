@@ -10,8 +10,26 @@ import { PrismaService } from '../prisma/prisma.service.js';
 export class EvaluacionesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async listar() {
+  async listar(filtros?: {
+    asignaturaId?: string;
+    profesorId?: string;
+    semestre?: number;
+    municipio?: 'CIENFUEGOS' | 'ABREUS' | 'CRUCES' | 'CUMANAYAGUA' | 'LAJAS' | 'PALMIRA' | 'RODAS' | 'AGUADA_DE_PASAJEROS';
+    estado?: 'APROBADA' | 'PENDIENTE';
+  }) {
     return this.prisma.evaluacion.findMany({
+      where: {
+        estado: filtros?.estado,
+        estudiante: filtros?.municipio ? { municipio: filtros.municipio } : undefined,
+        asignatura:
+          filtros?.asignaturaId || filtros?.profesorId || filtros?.semestre !== undefined
+            ? {
+                id: filtros.asignaturaId,
+                profesorId: filtros.profesorId,
+                semestre: filtros.semestre,
+              }
+            : undefined,
+      },
       include: {
         estudiante: {
           include: {
@@ -69,7 +87,6 @@ export class EvaluacionesService {
     estudianteId: string;
     asignaturaId: string;
     calificacion?: number | null;
-    estado?: 'APROBADA' | 'PENDIENTE';
     fecha?: Date;
   }, usuarioActual?: any) {
     const estudiante = await this.prisma.estudiante.findUnique({
@@ -98,22 +115,20 @@ export class EvaluacionesService {
       throw new ForbiddenException('No puedes registrar evaluaciones de otra asignatura');
     }
 
-    const estadosValidos = ['APROBADA', 'PENDIENTE'];
-    if (dto.estado && !estadosValidos.includes(dto.estado)) {
-      throw new BadRequestException('El estado de la evaluación no es válido');
-    }
-
     if (dto.calificacion !== undefined && dto.calificacion !== null) {
-      if (!Number.isInteger(dto.calificacion) || dto.calificacion < 0 || dto.calificacion > 100) {
-        throw new BadRequestException('La calificación debe estar entre 0 y 100');
+      if (!Number.isInteger(dto.calificacion) || dto.calificacion < 0 || dto.calificacion > 5) {
+        throw new BadRequestException('La calificación debe estar entre 0 y 5');
       }
     }
 
+    const calificacion = dto.calificacion ?? null;
+    const estado: 'APROBADA' | 'PENDIENTE' =
+      calificacion !== null && calificacion >= 3 ? 'APROBADA' : 'PENDIENTE';
     const data = {
       estudianteId: dto.estudianteId,
       asignaturaId: dto.asignaturaId,
-      calificacion: dto.calificacion ?? null,
-      estado: dto.estado ?? 'PENDIENTE',
+      calificacion,
+      estado,
       fecha: dto.fecha ?? new Date(),
     };
 

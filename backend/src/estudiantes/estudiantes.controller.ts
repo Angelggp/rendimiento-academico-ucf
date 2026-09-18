@@ -12,18 +12,87 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard.js';
 import { RolesGuard } from '../common/guards/roles.guard.js';
 import { Roles } from '../common/decorators/roles.decorator.js';
 import { EstudiantesService } from './estudiantes.service.js';
+import {
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MinLength,
+} from 'class-validator';
+import { Municipio } from '@prisma/client';
+
+class CrearEstudianteDto {
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
+  @IsString()
+  @MinLength(6)
+  password: string;
+
+  @IsString()
+  @IsNotEmpty()
+  nombre: string;
+
+  @IsString()
+  @IsNotEmpty()
+  apellidos: string;
+
+  @IsOptional()
+  @IsString()
+  telefono?: string;
+
+  @IsUUID()
+  @IsNotEmpty()
+  carreraId: string;
+
+  @IsString()
+  @IsNotEmpty()
+  carnetIdentidad: string;
+
+  @IsEnum(Municipio)
+  municipio: Municipio;
+
+  @IsOptional()
+  @IsString()
+  observaciones?: string | null;
+}
 
 class CrearPerfilEstudianteDto {
+  @IsUUID()
+  @IsNotEmpty()
   carreraId: string;
+
+  @IsString()
+  @IsNotEmpty()
   carnetIdentidad: string;
-  municipio: 'CIENFUEGOS' | 'ABREUS' | 'CRUCES' | 'CUMANAYAGUA' | 'LAJAS' | 'PALMIRA' | 'RODAS' | 'AGUADA_DE_PASAJEROS';
+
+  @IsEnum(Municipio)
+  municipio: Municipio;
+
+  @IsOptional()
+  @IsString()
   observaciones?: string | null;
 }
 
 class ActualizarEstudianteDto {
+  @IsOptional()
+  @IsUUID()
   carreraId?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
   carnetIdentidad?: string;
-  municipio?: 'CIENFUEGOS' | 'ABREUS' | 'CRUCES' | 'CUMANAYAGUA' | 'LAJAS' | 'PALMIRA' | 'RODAS' | 'AGUADA_DE_PASAJEROS';
+
+  @IsOptional()
+  @IsEnum(Municipio)
+  municipio?: Municipio;
+
+  @IsOptional()
+  @IsString()
   observaciones?: string | null;
 }
 
@@ -32,10 +101,16 @@ class ActualizarEstudianteDto {
 export class EstudiantesController {
   constructor(private readonly estudiantesService: EstudiantesService) {}
 
-  @Roles('VICEDECANO')
+  @Roles('VICEDECANO', 'PROFESOR')
   @Get()
   listar() {
     return this.estudiantesService.listar();
+  }
+
+  @Roles('ADMIN', 'VICEDECANO')
+  @Post()
+  crear(@Body() dto: CrearEstudianteDto) {
+    return this.estudiantesService.crear(dto);
   }
 
   @Roles('VICEDECANO', 'ESTUDIANTE')
@@ -50,9 +125,13 @@ export class EstudiantesController {
     return this.estudiantesService.crearDesdeUsuario(req.user.id, dto);
   }
 
-  @Roles('VICEDECANO')
+  @Roles('VICEDECANO', 'ESTUDIANTE')
   @Patch(':id')
-  actualizar(@Param('id') id: string, @Body() dto: ActualizarEstudianteDto) {
-    return this.estudiantesService.actualizar(id, dto);
+  actualizar(
+    @Param('id') id: string,
+    @Body() dto: ActualizarEstudianteDto,
+    @Req() req: any,
+  ) {
+    return this.estudiantesService.actualizar(id, dto, req.user);
   }
 }
