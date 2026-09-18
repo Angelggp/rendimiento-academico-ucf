@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { PrismaClient, Rol } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import * as bcrypt from 'bcrypt';
