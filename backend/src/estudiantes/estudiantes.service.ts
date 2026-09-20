@@ -165,6 +165,16 @@ export class EstudiantesService {
       );
     }
 
+    if (dto.carnetIdentidad && dto.carnetIdentidad !== estudiante.carnetIdentidad) {
+      const carnetExistente = await this.prisma.estudiante.findUnique({
+        where: { carnetIdentidad: dto.carnetIdentidad },
+      });
+
+      if (carnetExistente) {
+        throw new BadRequestException('El carné de identidad ya está registrado');
+      }
+    }
+
     return this.prisma.estudiante.update({
       where: { id },
       data: {
@@ -212,6 +222,14 @@ export class EstudiantesService {
 
     if (!dto.carreraId || !dto.carnetIdentidad || !dto.municipio) {
       throw new BadRequestException('Faltan datos del perfil del estudiante');
+    }
+
+    const carnetExistente = await this.prisma.estudiante.findUnique({
+      where: { carnetIdentidad: dto.carnetIdentidad },
+    });
+
+    if (carnetExistente) {
+      throw new BadRequestException('El carné de identidad ya está registrado');
     }
 
     return this.prisma.estudiante.create({
