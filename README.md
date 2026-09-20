@@ -43,7 +43,7 @@ Ingeniería Informática, con continuidad prevista en 4to año.
 
 ## Puesta en marcha
 
-_(se completa en el Sprint 1, a medida que se configura cada parte)_
+Ver [`docs/instalacion.md`](docs/instalacion.md).
 
 ## Roles y permisos
 
