@@ -75,3 +75,7 @@ Thumbs.db
 
 # Docker
 docker-compose.override.yml
+
+# Archivos de bloqueo de LibreOffice/Office (documentos abiertos)
+.~lock.*#
+~$*
