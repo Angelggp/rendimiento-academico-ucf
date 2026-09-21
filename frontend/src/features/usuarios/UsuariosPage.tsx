@@ -1,3 +1,4 @@
+import { useMemo } from "react"
 import { Loader2, TriangleAlert } from "lucide-react"
 import { useActualizarUsuario, useUsuarios } from "./use-usuarios"
 import { CrearUsuarioDialog } from "./CrearUsuarioDialog"
@@ -14,13 +15,10 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+  createAppColumnHelper,
+  DataTable,
+  useAppTable,
+} from "@/components/ui/data-table"
 
 const VARIANTE_ROL: Record<Rol, "default" | "secondary" | "outline" | "success"> = {
   ADMIN: "default",
@@ -29,17 +27,79 @@ const VARIANTE_ROL: Record<Rol, "default" | "secondary" | "outline" | "success">
   ESTUDIANTE: "success",
 }
 
+const helper = createAppColumnHelper<Usuario>()
+const SIN_DATOS: Usuario[] = []
+
 export function UsuariosPage() {
   const { data: usuarios, isLoading, isError, error } = useUsuarios()
   const actualizar = useActualizarUsuario()
   const { usuario: yo } = useAuth()
 
-  const alternarEstado = (usuario: Usuario) => {
-    actualizar.mutate({
-      id: usuario.id,
-      payload: { activo: !usuario.activo },
-    })
-  }
+  const alternarEstado = actualizar.mutate
+  const actualizando = actualizar.isPending
+  const miId = yo?.id
+
+  const columnas = useMemo(
+    () =>
+      helper.columns([
+        helper.accessor((u) => `${u.nombre} ${u.apellidos}`, {
+          id: "nombre",
+          header: "Nombre",
+          cell: (info) => <span className="font-medium">{info.getValue()}</span>,
+        }),
+        helper.accessor("email", { header: "Correo" }),
+        helper.accessor("rol", {
+          header: "Rol",
+          cell: (info) => (
+            <Badge variant={VARIANTE_ROL[info.getValue()]}>{info.getValue()}</Badge>
+          ),
+        }),
+        helper.accessor((u) => (u.activo ? "Activo" : "Inactivo"), {
+          id: "estado",
+          header: "Estado",
+          cell: (info) => (
+            <Badge variant={info.getValue() === "Activo" ? "success" : "destructive"}>
+              {info.getValue()}
+            </Badge>
+          ),
+        }),
+        helper.accessor((u) => u.telefono ?? "—", {
+          id: "telefono",
+          header: "Teléfono",
+          cell: (info) => (
+            <span className="text-muted-foreground">{info.getValue()}</span>
+          ),
+        }),
+        helper.display({
+          id: "acciones",
+          header: () => <span className="block text-right">Acciones</span>,
+          cell: (info) => {
+            const u = info.row.original
+            return (
+              <div className="flex justify-end gap-2">
+                <EditarUsuarioDialog usuario={u} esPropio={u.id === miId} />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    alternarEstado({ id: u.id, payload: { activo: !u.activo } })
+                  }
+                  disabled={actualizando || u.id === miId}
+                >
+                  {u.activo ? "Deshabilitar" : "Habilitar"}
+                </Button>
+              </div>
+            )
+          },
+        }),
+      ]),
+    [alternarEstado, actualizando, miId],
+  )
+
+  const table = useAppTable({
+    data: usuarios ?? SIN_DATOS,
+    columns: columnas,
+  })
 
   return (
     <div className="flex flex-col gap-4">
@@ -68,67 +128,11 @@ export function UsuariosPage() {
               <Loader2 className="animate-spin text-muted-foreground" />
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nombre</TableHead>
-                  <TableHead>Correo</TableHead>
-                  <TableHead>Rol</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead>Teléfono</TableHead>
-                  <TableHead className="text-right">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {usuarios?.map((usuario) => (
-                  <TableRow key={usuario.id}>
-                    <TableCell className="font-medium">
-                      {usuario.nombre} {usuario.apellidos}
-                    </TableCell>
-                    <TableCell>{usuario.email}</TableCell>
-                    <TableCell>
-                      <Badge variant={VARIANTE_ROL[usuario.rol]}>
-                        {usuario.rol}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={usuario.activo ? "success" : "destructive"}>
-                        {usuario.activo ? "Activo" : "Inactivo"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {usuario.telefono ?? "—"}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <EditarUsuarioDialog
-                          usuario={usuario}
-                          esPropio={usuario.id === yo?.id}
-                        />
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => alternarEstado(usuario)}
-                          disabled={actualizar.isPending || usuario.id === yo?.id}
-                        >
-                          {usuario.activo ? "Deshabilitar" : "Habilitar"}
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {usuarios?.length === 0 && (
-                  <TableRow>
-                    <TableCell
-                      colSpan={6}
-                      className="text-muted-foreground py-8 text-center"
-                    >
-                      No hay usuarios registrados.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+            <DataTable
+              table={table}
+              searchPlaceholder="Buscar por nombre, correo, rol…"
+              emptyMessage="No hay usuarios registrados."
+            />
           )}
         </CardContent>
       </Card>
