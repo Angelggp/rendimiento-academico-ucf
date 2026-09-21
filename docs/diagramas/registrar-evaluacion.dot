@@ -1,0 +1,45 @@
+digraph FlujoRegistrar {
+  rankdir=TB;
+  fontname="Helvetica";
+  node [shape=box, style="rounded,filled", fillcolor="#f5f5f5", fontname="Helvetica"];
+  edge [fontname="Helvetica", fontsize=11];
+
+  N1   [label="1. Buscar estudiante"];
+  N2   [shape=diamond, style=filled, fillcolor="#fff3cd", label="2. ¿No existe\nel estudiante?"];
+  N3   [style=filled, fillcolor="#f8d7da", label="3. 404\n\"El estudiante no existe\""];
+  N4   [label="4. Buscar asignatura"];
+  N5   [shape=diamond, style=filled, fillcolor="#fff3cd", label="5. ¿No existe\nla asignatura?"];
+  N6   [style=filled, fillcolor="#f8d7da", label="6. 404\n\"La asignatura no existe\""];
+  N7   [shape=diamond, style=filled, fillcolor="#fff3cd", label="7. ¿Es profesor y no es\ndueño de la asignatura?"];
+  N8   [style=filled, fillcolor="#f8d7da", label="8. 403\n\"No puedes registrar\nevaluaciones de otra asignatura\""];
+  N9   [shape=diamond, style=filled, fillcolor="#fff3cd", label="9. ¿Se envió\ncalificación?"];
+  N10  [shape=diamond, style=filled, fillcolor="#fff3cd", label="10. ¿Calificación no entera\no fuera de 0-5?"];
+  N11  [style=filled, fillcolor="#f8d7da", label="11. 400\n\"La calificación debe\nestar entre 0 y 5\""];
+  N12  [shape=diamond, style=filled, fillcolor="#fff3cd", label="12. ¿calificación >= 3?"];
+  N13a [style=filled, fillcolor="#d4edda", label="13a. estado = APROBADA"];
+  N13b [style=filled, fillcolor="#d1ecf1", label="13b. estado = PENDIENTE"];
+  N14  [style=filled, fillcolor="#d4edda", label="14. Guardar evaluación\n(upsert)"];
+  Fin  [shape=doublecircle, style=filled, fillcolor="#e2e3e5", label="Fin"];
+
+  N1 -> N2;
+  N2 -> N3  [label="sí"];
+  N2 -> N4  [label="no"];
+  N4 -> N5;
+  N5 -> N6  [label="sí"];
+  N5 -> N7  [label="no"];
+  N7 -> N8  [label="sí"];
+  N7 -> N9  [label="no"];
+  N9 -> N10 [label="sí"];
+  N9 -> N12 [label="no"];
+  N10 -> N11 [label="sí"];
+  N10 -> N12 [label="no"];
+  N12 -> N13a [label="sí"];
+  N12 -> N13b [label="no"];
+  N13a -> N14;
+  N13b -> N14;
+  N14 -> Fin;
+  N3 -> Fin;
+  N6 -> Fin;
+  N8 -> Fin;
+  N11 -> Fin;
+}

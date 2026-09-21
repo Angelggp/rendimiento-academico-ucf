@@ -1,0 +1,42 @@
+@startuml registrar-evaluacion
+title EvaluacionesService.registrar() — diagrama de actividad
+
+start
+:1. Buscar estudiante por id;
+if (2. ¿No existe el estudiante?) then (sí)
+  #Mistyrose:3. 404\n"El estudiante no existe";
+  stop
+else (no)
+endif
+
+:4. Buscar asignatura por id;
+if (5. ¿No existe la asignatura?) then (sí)
+  #Mistyrose:6. 404\n"La asignatura no existe";
+  stop
+else (no)
+endif
+
+if (7. ¿Es profesor y no es\ndueño de la asignatura?) then (sí)
+  #Mistyrose:8. 403\n"No puedes registrar\nevaluaciones de otra asignatura";
+  stop
+else (no)
+endif
+
+if (9. ¿Se envió calificación\n(no undefined/null)?) then (sí)
+  if (10. ¿No es entera o\nestá fuera de 0-5?) then (sí)
+    #Mistyrose:11. 400\n"La calificación debe\nestar entre 0 y 5";
+    stop
+  else (no)
+  endif
+else (no)
+endif
+
+if (12. ¿calificación >= 3?) then (sí)
+  #Palegreen:13a. estado = APROBADA;
+else (no)
+  #Lightblue:13b. estado = PENDIENTE;
+endif
+
+#Palegreen:14. Guardar evaluación (upsert);
+stop
+@enduml
