@@ -36,7 +36,7 @@ function TarjetaEstadistica({
           className={
             acento === "warning"
               ? "flex size-10 shrink-0 items-center justify-center rounded-md bg-amber-500/15 text-amber-600"
-              : "bg-muted text-muted-foreground flex size-10 shrink-0 items-center justify-center rounded-md"
+              : "bg-primary/10 text-primary flex size-10 shrink-0 items-center justify-center rounded-md"
           }
         >
           <Icono className="size-5" />
@@ -94,7 +94,7 @@ export function DashboardPage() {
             const Icono = item.icono
             return (
               <Link key={item.href} to={item.href} className="group">
-                <Card className="transition-colors group-hover:bg-muted/40">
+                <Card className="border-l-primary border-l-4 transition-all group-hover:-translate-y-0.5 group-hover:shadow-md">
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
                     <Icono className="size-5 text-primary" />
                     <ChevronRight className="text-muted-foreground size-4" />

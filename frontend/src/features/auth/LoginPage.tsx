@@ -67,10 +67,12 @@ export function LoginPage() {
         : null
 
   return (
-    <div className="flex min-h-svh items-center justify-center bg-muted/40 p-4">
-      <Card className="w-full max-w-sm">
+    <div className="flex min-h-svh items-center justify-center bg-gradient-to-br from-blue-700 via-blue-600 to-sky-400 p-4">
+      <Card className="w-full max-w-sm border-0 shadow-xl">
         <CardHeader className="items-center text-center">
-          <GraduationCap className="size-10 text-primary" />
+          <div className="bg-primary/10 text-primary flex size-14 items-center justify-center rounded-full">
+            <GraduationCap className="size-8" />
+          </div>
           <CardTitle className="text-xl">Rendimiento Académico UCF</CardTitle>
           <CardDescription>
             Facultad de Ingeniería. Inicie sesión para continuar.
