@@ -45,6 +45,8 @@ pnpm prisma:seed     # crea usuarios y datos de prueba
 cd ..
 ```
 
+El seed (`backend/prisma/seed.ts`) carga un conjunto de datos completo para poder probar todas las pantallas: 5 carreras (una deshabilitada), 7 profesores (uno deshabilitado), 13 asignaturas en 4 semestres (una deshabilitada), 25 estudiantes repartidos por carrera y por los 8 municipios, y 100 evaluaciones (~25% pendientes). Es **idempotente**: podés correrlo las veces que quieras sin que se dupliquen los datos.
+
 ## 5. Correr la app
 
 En dos terminales, desde la raíz del repo:
@@ -64,6 +66,8 @@ Abrí `http://localhost:5173` e iniciá sesión con cualquiera de los usuarios d
 | Vicedecana | `vicedecana@ucf.edu.cu` | `Vice123!` |
 | Profesor | `profesor@ucf.edu.cu` | `Profesor123!` |
 | Estudiante | `estudiante@ucf.edu.cu` | `Estudiante123!` |
+
+Además, los profesores extra (ej. `yamila.fernandez@ucf.edu.cu`) usan la contraseña `Profesor123!` y los estudiantes generados (ej. `yusnier.ramos@ucf.edu.cu`) usan `Estudiante123!`.
 
 ## Problemas comunes
 
