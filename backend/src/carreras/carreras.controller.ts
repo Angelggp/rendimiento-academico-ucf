@@ -50,7 +50,7 @@ export class CarrerasController {
     return this.carrerasService.crear(dto);
   }
 
-  @Roles('VICEDECANO', 'ESTUDIANTE')
+  @Roles('ADMIN', 'VICEDECANO', 'ESTUDIANTE')
   @Get()
   listar() {
     return this.carrerasService.listar();
