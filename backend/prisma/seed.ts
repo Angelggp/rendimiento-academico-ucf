@@ -31,21 +31,31 @@ const PROFESORES: { email: string; nombre: string; apellidos: string; activo: bo
 ];
 
 // profesor: índice en [profesor@ucf.edu.cu, ...PROFESORES]
-const ASIGNATURAS: { nombre: string; semestre: number; profesor: number; activo: boolean }[] = [
-  { nombre: 'Matemática I', semestre: 1, profesor: 1, activo: true },
-  { nombre: 'Introducción a la Programación', semestre: 1, profesor: 0, activo: true },
-  { nombre: 'Filosofía y Sociedad', semestre: 1, profesor: 3, activo: true },
-  { nombre: 'Matemática II', semestre: 2, profesor: 1, activo: true },
-  { nombre: 'Programación Orientada a Objetos', semestre: 2, profesor: 0, activo: true },
-  { nombre: 'Física General', semestre: 2, profesor: 4, activo: true },
-  { nombre: 'Estructuras de Datos', semestre: 3, profesor: 2, activo: true },
-  { nombre: 'Bases de Datos', semestre: 3, profesor: 2, activo: true },
-  { nombre: 'Probabilidades y Estadística', semestre: 3, profesor: 4, activo: true },
-  { nombre: 'Redes de Computadoras', semestre: 4, profesor: 3, activo: true },
-  { nombre: 'Ingeniería de Software', semestre: 4, profesor: 0, activo: true },
-  { nombre: 'Sistemas Operativos', semestre: 4, profesor: 5, activo: true },
+// carreras: plan de estudios; una asignatura puede compartirse entre varias carreras.
+const INFO = 'Ingeniería Informática';
+const CIVIL = 'Ingeniería Civil';
+const INDUSTRIAL = 'Ingeniería Industrial';
+const ELECTRICA = 'Ingeniería Eléctrica';
+const TODAS = [INFO, CIVIL, INDUSTRIAL, ELECTRICA];
+
+const ASIGNATURAS: { nombre: string; semestre: number; profesor: number; activo: boolean; carreras: string[] }[] = [
+  { nombre: 'Matemática I', semestre: 1, profesor: 1, activo: true, carreras: TODAS },
+  { nombre: 'Introducción a la Programación', semestre: 1, profesor: 0, activo: true, carreras: [INFO] },
+  { nombre: 'Filosofía y Sociedad', semestre: 1, profesor: 3, activo: true, carreras: TODAS },
+  { nombre: 'Matemática II', semestre: 2, profesor: 1, activo: true, carreras: TODAS },
+  { nombre: 'Programación Orientada a Objetos', semestre: 2, profesor: 0, activo: true, carreras: [INFO] },
+  { nombre: 'Física General', semestre: 2, profesor: 4, activo: true, carreras: [CIVIL, INDUSTRIAL, ELECTRICA] },
+  { nombre: 'Estructuras de Datos', semestre: 3, profesor: 2, activo: true, carreras: [INFO] },
+  { nombre: 'Bases de Datos', semestre: 3, profesor: 2, activo: true, carreras: [INFO, INDUSTRIAL] },
+  { nombre: 'Probabilidades y Estadística', semestre: 3, profesor: 4, activo: true, carreras: TODAS },
+  { nombre: 'Hormigón Armado', semestre: 3, profesor: 3, activo: true, carreras: [CIVIL] },
+  { nombre: 'Circuitos Eléctricos', semestre: 3, profesor: 1, activo: true, carreras: [ELECTRICA] },
+  { nombre: 'Investigación de Operaciones', semestre: 3, profesor: 4, activo: true, carreras: [INDUSTRIAL] },
+  { nombre: 'Redes de Computadoras', semestre: 4, profesor: 3, activo: true, carreras: [INFO, ELECTRICA] },
+  { nombre: 'Ingeniería de Software', semestre: 4, profesor: 0, activo: true, carreras: [INFO] },
+  { nombre: 'Sistemas Operativos', semestre: 4, profesor: 5, activo: true, carreras: [INFO] },
   // Asignatura deshabilitada, para probar el filtro de activas.
-  { nombre: 'Historia de Cuba', semestre: 1, profesor: 3, activo: false },
+  { nombre: 'Historia de Cuba', semestre: 1, profesor: 3, activo: false, carreras: TODAS },
 ];
 
 const NOMBRES = [
@@ -168,17 +178,29 @@ async function ensureEstudiante(
   });
 }
 
-async function ensureAsignatura(nombre: string, semestre: number, profesorId: string, activo: boolean) {
+async function ensureAsignatura(
+  nombre: string,
+  semestre: number,
+  profesorId: string,
+  activo: boolean,
+  carreraIds: string[],
+) {
+  const carreras = carreraIds.map((id) => ({ id }));
   const existente = await prisma.asignatura.findFirst({
     where: { nombre: { equals: nombre, mode: 'insensitive' }, semestre },
   });
 
   if (existente) {
-    return existente;
+    return prisma.asignatura.update({
+      where: { id: existente.id },
+      data: { carreras: { set: carreras } },
+      include: { carreras: { select: { id: true } } },
+    });
   }
 
   return prisma.asignatura.create({
-    data: { nombre, semestre, profesorId, activo },
+    data: { nombre, semestre, profesorId, activo, carreras: { connect: carreras } },
+    include: { carreras: { select: { id: true } } },
   });
 }
 
@@ -188,7 +210,7 @@ async function ensureAsignatura(nombre: string, semestre: number, profesorId: st
 
 async function main() {
   // Carreras
-  const carreras = [];
+  const carreras: Awaited<ReturnType<typeof ensureCarrera>>[] = [];
   for (const c of CARRERAS) {
     carreras.push(await ensureCarrera(c.nombre, c.plan, c.activo));
   }
@@ -210,7 +232,8 @@ async function main() {
   // Asignaturas
   const asignaturas = [];
   for (const a of ASIGNATURAS) {
-    asignaturas.push(await ensureAsignatura(a.nombre, a.semestre, profesorIds[a.profesor]!, a.activo));
+    const carreraIds = a.carreras.map((nombre) => carreras.find((c) => c.nombre === nombre)!.id);
+    asignaturas.push(await ensureAsignatura(a.nombre, a.semestre, profesorIds[a.profesor]!, a.activo, carreraIds));
   }
   const asignaturasActivas = asignaturas.filter((a) => a.activo);
 
@@ -240,23 +263,27 @@ async function main() {
     );
   }
 
-  // Evaluaciones: cada estudiante es evaluado en 4 asignaturas activas, con notas variadas.
+  // Evaluaciones: cada estudiante es evaluado en hasta 4 asignaturas activas de SU carrera.
   const ahora = Date.now();
   let evaluaciones = 0;
 
   for (let i = 0; i < estudiantes.length; i++) {
-    for (let j = 0; j < 4; j++) {
-      const asignatura = asignaturasActivas[(i * 3 + j * 2) % asignaturasActivas.length]!;
+    const estudiante = estudiantes[i]!;
+    const propias = asignaturasActivas.filter((a) => a.carreras.some((c) => c.id === estudiante.carreraId));
+    const cantidad = Math.min(4, propias.length);
+
+    for (let j = 0; j < cantidad; j++) {
+      const asignatura = propias[(i * 3 + j) % propias.length]!;
       const calificacion = NOTAS[(i * 5 + j * 3) % NOTAS.length] ?? null;
       const estado = calificacion !== null && calificacion >= 3 ? 'APROBADA' : 'PENDIENTE';
       const fecha = new Date(ahora - ((i * 4 + j * 9) % 60) * 24 * 60 * 60 * 1000);
 
       await prisma.evaluacion.upsert({
         where: {
-          estudianteId_asignaturaId: { estudianteId: estudiantes[i]!.id, asignaturaId: asignatura.id },
+          estudianteId_asignaturaId: { estudianteId: estudiante.id, asignaturaId: asignatura.id },
         },
         update: { calificacion, estado, fecha },
-        create: { estudianteId: estudiantes[i]!.id, asignaturaId: asignatura.id, calificacion, estado, fecha },
+        create: { estudianteId: estudiante.id, asignaturaId: asignatura.id, calificacion, estado, fecha },
       });
       evaluaciones++;
     }

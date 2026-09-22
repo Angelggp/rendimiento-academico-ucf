@@ -100,7 +100,7 @@ export class EvaluacionesService {
 
     const asignatura = await this.prisma.asignatura.findUnique({
       where: { id: dto.asignaturaId },
-      include: { profesor: true },
+      include: { profesor: true, carreras: { select: { id: true } } },
     });
 
     if (!asignatura) {
@@ -113,6 +113,12 @@ export class EvaluacionesService {
       asignatura.profesor.usuarioId !== usuarioActual.id
     ) {
       throw new ForbiddenException('No puedes registrar evaluaciones de otra asignatura');
+    }
+
+    if (!asignatura.carreras.some((carrera) => carrera.id === estudiante.carreraId)) {
+      throw new BadRequestException(
+        'El estudiante no pertenece a una carrera que cursa esta asignatura',
+      );
     }
 
     if (dto.calificacion !== undefined && dto.calificacion !== null) {

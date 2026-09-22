@@ -100,6 +100,8 @@ model Carrera {
   updatedAt DateTime @updatedAt
 
   estudiantes Estudiante[]
+  // Plan de estudios: asignaturas que se cursan en esta carrera.
+  asignaturas Asignatura[]
 
   @@map("Carrera")
 }
@@ -114,6 +116,8 @@ model Asignatura {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
+  // Carreras que cursan esta asignatura (relación muchos a muchos).
+  carreras     Carrera[]
   evaluaciones Evaluacion[]
 
   @@map("Asignatura")

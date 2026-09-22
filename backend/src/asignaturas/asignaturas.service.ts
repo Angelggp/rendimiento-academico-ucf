@@ -5,26 +5,40 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 
+const INCLUDE_ASIGNATURA = {
+  profesor: {
+    include: {
+      usuario: {
+        select: {
+          id: true,
+          email: true,
+          nombre: true,
+          apellidos: true,
+          rol: true,
+          activo: true,
+        },
+      },
+    },
+  },
+  carreras: { select: { id: true, nombre: true, plan: true, activo: true } },
+} as const;
+
 @Injectable()
 export class AsignaturasService {
   constructor(private readonly prisma: PrismaService) {}
 
+  private async validarCarreras(carreraIds: string[]) {
+    const ids = [...new Set(carreraIds)];
+    const existentes = await this.prisma.carrera.count({ where: { id: { in: ids } } });
+
+    if (existentes !== ids.length) {
+      throw new NotFoundException('Alguna de las carreras indicadas no existe');
+    }
+  }
+
   async listar() {
     return this.prisma.asignatura.findMany({
-      include: {
-        profesor: {
-          include: {
-            usuario: {
-              select: {
-                id: true,
-                email: true,
-                nombre: true,
-                apellidos: true,
-              },
-            },
-          },
-        },
-      },
+      include: INCLUDE_ASIGNATURA,
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -32,22 +46,7 @@ export class AsignaturasService {
   async obtenerPorId(id: string) {
     const asignatura = await this.prisma.asignatura.findUnique({
       where: { id },
-      include: {
-        profesor: {
-          include: {
-            usuario: {
-              select: {
-                id: true,
-                email: true,
-                nombre: true,
-                apellidos: true,
-                rol: true,
-                activo: true,
-              },
-            },
-          },
-        },
-      },
+      include: INCLUDE_ASIGNATURA,
     });
 
     if (!asignatura) {
@@ -57,7 +56,7 @@ export class AsignaturasService {
     return asignatura;
   }
 
-  async crear(dto: { nombre: string; semestre: number; profesorId: string }) {
+  async crear(dto: { nombre: string; semestre: number; profesorId: string; carreraIds: string[] }) {
     if (!dto.nombre?.trim()) {
       throw new BadRequestException('El nombre de la asignatura es obligatorio');
     }
@@ -72,32 +71,20 @@ export class AsignaturasService {
       throw new NotFoundException('El profesor indicado no existe');
     }
 
+    await this.validarCarreras(dto.carreraIds);
+
     return this.prisma.asignatura.create({
       data: {
         nombre: dto.nombre.trim(),
         semestre: dto.semestre,
         profesorId: dto.profesorId,
+        carreras: { connect: [...new Set(dto.carreraIds)].map((id) => ({ id })) },
       },
-      include: {
-        profesor: {
-          include: {
-            usuario: {
-              select: {
-                id: true,
-                email: true,
-                nombre: true,
-                apellidos: true,
-                rol: true,
-                activo: true,
-              },
-            },
-          },
-        },
-      },
+      include: INCLUDE_ASIGNATURA,
     });
   }
 
-  async actualizar(id: string, dto: { nombre?: string; semestre?: number; activo?: boolean; profesorId?: string }) {
+  async actualizar(id: string, dto: { nombre?: string; semestre?: number; activo?: boolean; profesorId?: string; carreraIds?: string[] }) {
     const asignatura = await this.prisma.asignatura.findUnique({ where: { id } });
 
     if (!asignatura) {
@@ -115,30 +102,20 @@ export class AsignaturasService {
       }
     }
 
+    if (dto.carreraIds) {
+      await this.validarCarreras(dto.carreraIds);
+    }
+
     return this.prisma.asignatura.update({
       where: { id },
       data: {
+        ...(dto.carreraIds && { carreras: { set: [...new Set(dto.carreraIds)].map((carreraId) => ({ id: carreraId })) } }),
         ...(dto.nombre && { nombre: dto.nombre.trim() }),
         ...(dto.semestre !== undefined && { semestre: dto.semestre }),
         ...(dto.activo !== undefined && { activo: dto.activo }),
         ...(dto.profesorId && { profesorId: dto.profesorId }),
       },
-      include: {
-        profesor: {
-          include: {
-            usuario: {
-              select: {
-                id: true,
-                email: true,
-                nombre: true,
-                apellidos: true,
-                rol: true,
-                activo: true,
-              },
-            },
-          },
-        },
-      },
+      include: INCLUDE_ASIGNATURA,
     });
   }
 
@@ -176,22 +153,7 @@ export class AsignaturasService {
 
     return this.prisma.asignatura.findMany({
       where: { profesorId },
-      include: {
-        profesor: {
-          include: {
-            usuario: {
-              select: {
-                id: true,
-                email: true,
-                nombre: true,
-                apellidos: true,
-                rol: true,
-                activo: true,
-              },
-            },
-          },
-        },
-      },
+      include: INCLUDE_ASIGNATURA,
       orderBy: { createdAt: 'desc' },
     });
   }

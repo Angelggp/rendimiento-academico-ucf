@@ -13,7 +13,17 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard.js';
 import { RolesGuard } from '../common/guards/roles.guard.js';
 import { Roles } from '../common/decorators/roles.decorator.js';
 import { AsignaturasService } from './asignaturas.service.js';
-import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import {
+  ArrayMinSize,
+  IsArray,
+  IsBoolean,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Min,
+} from 'class-validator';
 
 class CrearAsignaturaDto {
   @IsString()
@@ -27,6 +37,11 @@ class CrearAsignaturaDto {
   @IsUUID()
   @IsNotEmpty()
   profesorId: string;
+
+  @IsArray()
+  @ArrayMinSize(1)
+  @IsUUID('all', { each: true })
+  carreraIds: string[];
 }
 
 class ActualizarAsignaturaDto {
@@ -47,6 +62,12 @@ class ActualizarAsignaturaDto {
   @IsOptional()
   @IsUUID()
   profesorId?: string;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMinSize(1)
+  @IsUUID('all', { each: true })
+  carreraIds?: string[];
 }
 
 @UseGuards(JwtAuthGuard, RolesGuard)
