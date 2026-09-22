@@ -1,4 +1,18 @@
-import type { EstadoEvaluacion, Municipio, Plan } from "@/types/api"
+import type { EstadoEvaluacion, Municipio, Plan, Rol } from "@/types/api"
+
+export const ETIQUETA_ROL: Record<Rol, string> = {
+  ADMIN: "Administrador",
+  VICEDECANO: "Vicedecana",
+  PROFESOR: "Profesor",
+  ESTUDIANTE: "Estudiante",
+}
+
+export const VARIANTE_ROL: Record<Rol, "default" | "secondary" | "outline" | "success"> = {
+  ADMIN: "default",
+  VICEDECANO: "secondary",
+  PROFESOR: "outline",
+  ESTUDIANTE: "success",
+}
 
 export const ETIQUETA_MUNICIPIO: Record<Municipio, string> = {
   CIENFUEGOS: "Cienfuegos",

@@ -10,6 +10,8 @@ import { LogOut, GraduationCap, Menu, PanelLeftClose, PanelLeftOpen } from "luci
 import { navPorRol, type ItemNav } from "@/config/nav"
 import { useAuth } from "@/features/auth/use-auth"
 import { cn } from "@/lib/utils"
+import { ETIQUETA_ROL, VARIANTE_ROL } from "@/lib/format"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Sheet,
@@ -140,6 +142,9 @@ export function AppLayout() {
                 {usuario.nombre} {usuario.apellidos}
               </p>
               <p className="text-sidebar-foreground/70 truncate text-xs">{usuario.email}</p>
+              <Badge variant={VARIANTE_ROL[usuario.rol]} className="mt-1">
+                {ETIQUETA_ROL[usuario.rol]}
+              </Badge>
             </div>
           </div>
         )}
@@ -173,8 +178,9 @@ export function AppLayout() {
             <h1 className="text-lg font-semibold">{tituloPagina}</h1>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-muted-foreground hidden text-sm md:block">
+            <span className="text-muted-foreground hidden items-center gap-2 text-sm md:flex">
               {usuario.nombre} {usuario.apellidos}
+              <Badge variant={VARIANTE_ROL[usuario.rol]}>{ETIQUETA_ROL[usuario.rol]}</Badge>
             </span>
             <Button
               variant="outline"
