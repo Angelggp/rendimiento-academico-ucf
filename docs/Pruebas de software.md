@@ -140,13 +140,13 @@ Verificación por el grafo (nodos y aristas contando un nodo "Fin" común donde 
 
 | Camino | Recorrido | Condición que lo dispara |
 |---|---|---|
-| C1 | 1→2(sí)→3→Fin | El estudiante no existe |
-| C2 | 1→2→4→5(sí)→6→Fin | La asignatura no existe |
-| C3 | 1→2→4→5→7(sí)→8→Fin | Un profesor intenta evaluar una asignatura que no es suya |
-| C4 | 1→2→4→5→7→9(sí)→10→Fin | La carrera del estudiante no cursa la asignatura |
-| C5 | 1→2→4→5→7→9(no)→11(sí)→12(sí)→13→Fin | La calificación está fuera de 0-5 o no es entera |
-| C6 | 1→2→4→5→7→9→11(sí)→12(no)→14(sí)→15a→16→Fin | Calificación válida y ≥ 3 → se guarda como Aprobada |
-| C7 | 1→2→4→5→7→9→11(sí)→12(no)→14(no)→15b→16→Fin | Calificación válida y < 3 → se guarda como Pendiente |
+| C1 | 1→2(no)→3→Fin | El estudiante no existe |
+| C2 | 1→2(sí)→4→5(no)→6→Fin | La asignatura no existe |
+| C3 | 1→2→4→5(sí)→7(no)→8→Fin | Un profesor intenta evaluar una asignatura que no es suya |
+| C4 | 1→2→4→5→7(sí)→9(no)→10→Fin | La carrera del estudiante no cursa la asignatura |
+| C5 | 1→2→4→5→7→9(sí)→11(sí)→12(no)→13→Fin | La calificación está fuera de 0-5 o no es entera |
+| C6 | 1→2→4→5→7→9→11(sí)→12(sí)→14(sí)→15a→16→Fin | Calificación válida y ≥ 3 → se guarda como Aprobada |
+| C7 | 1→2→4→5→7→9→11(sí)→12(sí)→14(no)→15b→16→Fin | Calificación válida y < 3 → se guarda como Pendiente |
 | C8 | 1→2→4→5→7→9→11(no)→14(no)→15b→16→Fin | No se envía calificación → se guarda como Pendiente sin nota |
 
 ### 2.5 Casos de prueba por camino básico
