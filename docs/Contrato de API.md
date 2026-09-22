@@ -106,17 +106,17 @@ Body: `{ usuarioId? }` → `200`.
 ## 6. Asignaturas
 
 ### `GET /asignaturas` — ADMIN, VICEDECANO, PROFESOR
-→ `200` `[{id, nombre, semestre, profesorId, activo, createdAt, updatedAt, profesor: {id, usuarioId, usuario: {id, email, nombre, apellidos}}}]`
+→ `200` `[{id, nombre, semestre, profesorId, activo, createdAt, updatedAt, profesor: {id, usuarioId, usuario: {id, email, nombre, apellidos}}, carreras: [{id, nombre, plan, activo}]}]`
 
 ### `GET /asignaturas/:id` — ADMIN, VICEDECANO, PROFESOR
 → `200` · `404`.
 
 ### `POST /asignaturas` — ADMIN
-Body: `{ nombre: string, semestre: number (int ≥ 1), profesorId: string }`
-→ `201` (asignatura con su `profesor.usuario`) · `404` si el profesor no existe · `400` si `semestre` no es entero ≥ 1.
+Body: `{ nombre: string, semestre: number (int ≥ 1), profesorId: string, carreraIds: string[] (mínimo 1) }`
+→ `201` (asignatura con su `profesor.usuario` y sus `carreras`) · `404` si el profesor o alguna carrera no existe · `400` si `semestre` no es entero ≥ 1 o `carreraIds` está vacío.
 
 ### `PATCH /asignaturas/:id` — ADMIN
-Body: `{ nombre?, semestre?, activo?, profesorId? }` → `200`.
+Body: `{ nombre?, semestre?, activo?, profesorId?, carreraIds? }` (si se envía `carreraIds` reemplaza el conjunto de carreras; mínimo 1) → `200`.
 
 ### `DELETE /asignaturas/:id` — ADMIN
 Deshabilita (`activo: false`). → `200`.
@@ -139,7 +139,7 @@ Modelo actual: **una sola fila por estudiante-asignatura** (`@@unique`), se actu
 Body: `{ estudianteId, asignaturaId, calificacion?: (int 0-5) | null, fecha?: string ISO }`
 - Crea la fila si no existe; la actualiza si ya existe (mismo estudiante+asignatura).
 - `fecha` por defecto ahora; `calificacion` por defecto `null`. El `estado` de la respuesta se calcula desde la nota.
-- `403` si el profesor no es dueño de la asignatura · `404` si estudiante o asignatura no existen · `400` si `calificacion` fuera de 0-5.
+- `403` si el profesor no es dueño de la asignatura · `404` si estudiante o asignatura no existen · `400` si `calificacion` está fuera de 0-5 o si la carrera del estudiante no cursa la asignatura.
 
 ### `GET /evaluaciones/estudiante/:estudianteId` — ADMIN, VICEDECANO o el propio estudiante
 Evaluaciones del estudiante con su `asignatura`. → `200` · `403` ajeno.

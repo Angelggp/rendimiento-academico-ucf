@@ -45,7 +45,7 @@ pnpm prisma:seed     # crea usuarios y datos de prueba
 cd ..
 ```
 
-El seed (`backend/prisma/seed.ts`) carga un conjunto de datos completo para poder probar todas las pantallas: 5 carreras (una deshabilitada), 7 profesores (uno deshabilitado), 13 asignaturas en 4 semestres (una deshabilitada), 25 estudiantes repartidos por carrera y por los 8 municipios, y 100 evaluaciones (~25% pendientes). Es **idempotente**: podés correrlo las veces que quieras sin que se dupliquen los datos.
+El seed (`backend/prisma/seed.ts`) carga un conjunto de datos completo para poder probar todas las pantallas: 5 carreras (una deshabilitada), 7 profesores (uno deshabilitado), 16 asignaturas en 4 semestres, cada una asociada a las carreras que la cursan (una deshabilitada), 25 estudiantes repartidos por carrera y por los 8 municipios, y ~100 evaluaciones (~25% pendientes), siempre entre estudiantes y asignaturas de su misma carrera. Es **idempotente**: podés correrlo las veces que quieras sin que se dupliquen los datos.
 
 ## 5. Correr la app
 

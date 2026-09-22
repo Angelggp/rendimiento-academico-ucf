@@ -76,7 +76,7 @@ async registrar(dto: {
 
   const asignatura = await this.prisma.asignatura.findUnique({           // 4
     where: { id: dto.asignaturaId },
-    include: { profesor: true },
+    include: { profesor: true, carreras: { select: { id: true } } },
   });
 
   if (!asignatura) {                                                     // 5
@@ -91,18 +91,24 @@ async registrar(dto: {
     throw new ForbiddenException('No puedes registrar evaluaciones de otra asignatura'); // 8
   }
 
-  if (dto.calificacion !== undefined && dto.calificacion !== null) {     // 9
-    if (!Number.isInteger(dto.calificacion) || dto.calificacion < 0 || dto.calificacion > 5) { // 10
-      throw new BadRequestException('La calificación debe estar entre 0 y 5');            // 11
+  if (!asignatura.carreras.some((carrera) => carrera.id === estudiante.carreraId)) {  // 9
+    throw new BadRequestException(                                                    // 10
+      'El estudiante no pertenece a una carrera que cursa esta asignatura',
+    );
+  }
+
+  if (dto.calificacion !== undefined && dto.calificacion !== null) {     // 11
+    if (!Number.isInteger(dto.calificacion) || dto.calificacion < 0 || dto.calificacion > 5) { // 12
+      throw new BadRequestException('La calificación debe estar entre 0 y 5');            // 13
     }
   }
 
   const calificacion = dto.calificacion ?? null;
   const estado: 'APROBADA' | 'PENDIENTE' =
-    calificacion !== null && calificacion >= 3 ? 'APROBADA' : 'PENDIENTE'; // 12
+    calificacion !== null && calificacion >= 3 ? 'APROBADA' : 'PENDIENTE'; // 14
   const data = { estudianteId: dto.estudianteId, asignaturaId: dto.asignaturaId, calificacion, estado, fecha: dto.fecha ?? new Date() };
 
-  return this.prisma.evaluacion.upsert({                                 // 13
+  return this.prisma.evaluacion.upsert({                                 // 15
     where: { estudianteId_asignaturaId: { estudianteId: dto.estudianteId, asignaturaId: dto.asignaturaId } },
     update: { calificacion: data.calificacion, estado: data.estado, fecha: data.fecha },
     create: data,
@@ -111,7 +117,7 @@ async registrar(dto: {
 }
 ```
 
-Se identifican **6 puntos de decisión**: dos validaciones de existencia (líneas 2 y 5), una validación de permisos del profesor (línea 7), una validación de rango de la calificación (líneas 9 y 10) y el cálculo del estado final (línea 12, una expresión condicional que decide entre `APROBADA` y `PENDIENTE`).
+Se identifican **7 puntos de decisión**: dos validaciones de existencia (líneas 2 y 5), una validación de permisos del profesor (línea 7), una validación de que la carrera del estudiante cursa la asignatura (línea 9), una validación de rango de la calificación (líneas 11 y 12) y el cálculo del estado final (línea 14, una expresión condicional que decide entre `APROBADA` y `PENDIENTE`).
 
 ### 2.2 Grafo de flujo
 
@@ -122,13 +128,13 @@ El código fuente del diagrama está en `docs/diagramas/`, en dos formatos por s
 - **`registrar-evaluacion.dot`** (Graphviz) — es el que generó la imagen de arriba. Para volver a renderizarlo: pegalo en [dreampuff.github.io/GraphvizOnline](https://dreampuff.github.io/GraphvizOnline/) o corré `dot -Tpng registrar-evaluacion.dot -o registrar-evaluacion.png` si tenés Graphviz instalado (`sudo apt install graphviz`).
 - **`registrar-evaluacion.puml`** (PlantUML) — la misma lógica pero como diagrama de actividad (flowchart clásico, con rombos de decisión). Para renderizarlo: pegalo en [plantuml.com/plantuml](https://www.plantuml.com/plantuml/uml/) o usá la extensión "PlantUML" de VS Code.
 
-Cualquiera de las dos imágenes sirve para el informe; la del `.dot` es la que numera los nodos igual que la tabla de caminos básicos de abajo (1 a 14 + Fin).
+Cualquiera de las dos imágenes sirve para el informe; la del `.dot` es la que numera los nodos igual que la tabla de caminos básicos de abajo (1 a 16 + Fin).
 
 ### 2.3 Complejidad ciclomática
 
-Con 6 puntos de decisión: **V(G) = número de decisiones + 1 = 7**.
+Con 7 puntos de decisión: **V(G) = número de decisiones + 1 = 8**.
 
-Verificación por el grafo (nodos y aristas contando un nodo "Fin" común donde convergen las 4 salidas): V(G) = aristas − nodos + 2 = 21 − 16 + 2 = **7**. Coincide con el cálculo anterior.
+Verificación por el grafo (nodos y aristas contando un nodo "Fin" común donde convergen las 6 salidas: las 5 excepciones y el flujo normal): V(G) = aristas − nodos + 2 = 24 − 18 + 2 = **8**. Coincide con el cálculo anterior.
 
 ### 2.4 Caminos básicos (independientes)
 
@@ -137,10 +143,11 @@ Verificación por el grafo (nodos y aristas contando un nodo "Fin" común donde 
 | C1 | 1→2(sí)→3→Fin | El estudiante no existe |
 | C2 | 1→2→4→5(sí)→6→Fin | La asignatura no existe |
 | C3 | 1→2→4→5→7(sí)→8→Fin | Un profesor intenta evaluar una asignatura que no es suya |
-| C4 | 1→2→4→5→7→9(sí)→10(sí)→11→Fin | La calificación está fuera de 0-5 o no es entera |
-| C5 | 1→2→4→5→7→9(sí)→10(no)→12(sí)→13→Fin | Calificación válida y ≥ 3 → se guarda como Aprobada |
-| C6 | 1→2→4→5→7→9(sí)→10(no)→12(no)→13→Fin | Calificación válida y < 3 → se guarda como Pendiente |
-| C7 | 1→2→4→5→7→9(no)→12(no)→13→Fin | No se envía calificación → se guarda como Pendiente sin nota |
+| C4 | 1→2→4→5→7→9(sí)→10→Fin | La carrera del estudiante no cursa la asignatura |
+| C5 | 1→2→4→5→7→9(no)→11(sí)→12(sí)→13→Fin | La calificación está fuera de 0-5 o no es entera |
+| C6 | 1→2→4→5→7→9→11(sí)→12(no)→14(sí)→15a→16→Fin | Calificación válida y ≥ 3 → se guarda como Aprobada |
+| C7 | 1→2→4→5→7→9→11(sí)→12(no)→14(no)→15b→16→Fin | Calificación válida y < 3 → se guarda como Pendiente |
+| C8 | 1→2→4→5→7→9→11(no)→14(no)→15b→16→Fin | No se envía calificación → se guarda como Pendiente sin nota |
 
 ### 2.5 Casos de prueba por camino básico
 
@@ -149,14 +156,17 @@ Verificación por el grafo (nodos y aristas contando un nodo "Fin" común donde 
 | CB-01 | C1 | `estudianteId` de un UUID que no existe | `404 Not Found` — "El estudiante no existe" | ☐ Pendiente |
 | CB-02 | C2 | `estudianteId` válido + `asignaturaId` que no existe | `404 Not Found` — "La asignatura no existe" | ☐ Pendiente |
 | CB-03 | C3 | Autenticado como `profesor@ucf.edu.cu`, `asignaturaId` de una asignatura de **otro** profesor | `403 Forbidden` — "No puedes registrar evaluaciones de otra asignatura" | ☐ Pendiente |
-| CB-04 | C4 | `calificacion: 7` (o `-1`, o `3.5`) sobre una asignatura propia | `400 Bad Request` — "La calificación debe estar entre 0 y 5" | ☐ Pendiente |
-| CB-05 | C5 | `calificacion: 4` | `201/200`, `estado: "APROBADA"` | ☐ Pendiente |
-| CB-06 | C6 | `calificacion: 1` | `201/200`, `estado: "PENDIENTE"`, `calificacion: 1` | ☐ Pendiente |
-| CB-07 | C7 | `calificacion: null` (o el campo omitido) | `201/200`, `estado: "PENDIENTE"`, `calificacion: null` | ☐ Pendiente |
+| CB-04 | C4 | Asignatura propia + estudiante de una carrera que **no** cursa esa asignatura (ej. estudiante de Civil en *Introducción a la Programación*, que es solo de Informática) | `400 Bad Request` — "El estudiante no pertenece a una carrera que cursa esta asignatura" | ☐ Pendiente |
+| CB-05 | C5 | Estudiante de una carrera de la asignatura + `calificacion: 7` (o `-1`, o `3.5`) | `400 Bad Request` — "La calificación debe estar entre 0 y 5" | ☐ Pendiente |
+| CB-06 | C6 | Estudiante de una carrera de la asignatura + `calificacion: 4` | `201/200`, `estado: "APROBADA"` | ☐ Pendiente |
+| CB-07 | C7 | Estudiante de una carrera de la asignatura + `calificacion: 1` | `201/200`, `estado: "PENDIENTE"`, `calificacion: 1` | ☐ Pendiente |
+| CB-08 | C8 | Estudiante de una carrera de la asignatura + `calificacion: null` (o el campo omitido) | `201/200`, `estado: "PENDIENTE"`, `calificacion: null` | ☐ Pendiente |
 
-Estos 7 casos dan **cobertura del 100% de las decisiones y de los caminos básicos** del método.
+Estos 8 casos dan **cobertura del 100% de las decisiones y de los caminos básicos** del método.
 
 > Para CB-03 hace falta una segunda asignatura a cargo de otro profesor: como admin, crear un usuario con rol Profesor y, en *Asignaturas*, una asignatura a su cargo. Luego intentar registrar la evaluación autenticado con `profesor@ucf.edu.cu` (dueño de otra asignatura) contra esa asignatura ajena.
+>
+> Para CB-04 hace falta un estudiante de una carrera distinta a las de la asignatura (con el seed: un estudiante de Ingeniería Civil contra *Introducción a la Programación*). Los casos CB-05 a CB-08 se ejecutan con un estudiante de una carrera que sí cursa la asignatura (ej. Informática).
 
 ---
 
@@ -170,7 +180,7 @@ Objetivo: comprobar que las cuatro capas del sistema (alta de estudiante, regist
 |---|---|---|---|
 | 1 | Vicedecana | Entra a *Estudiantes* → *Nuevo estudiante* → completa el alta (ver CN-01) | El estudiante aparece en la tabla |
 | 2 | Vicedecana | Anota el dashboard (`/vicedecana`): cuenta de "Estudiantes" | El contador subió en 1 respecto al paso anterior |
-| 3 | Profesor | Entra a *Mis Asignaturas* → una asignatura → busca al estudiante recién creado y le pone una nota menor a 3 (ej. `2`) | La fila muestra "Pendiente" inmediatamente |
+| 3 | Profesor | Entra a *Mis Asignaturas* → una asignatura **que cursa la carrera del estudiante creado en el paso 1** → busca al estudiante y le pone una nota menor a 3 (ej. `2`) | La fila muestra "Pendiente" inmediatamente; el estudiante aparece porque su carrera es una de las de la asignatura |
 | 4 | Vicedecana | Entra a *Pendientes* | El estudiante aparece en la lista, sin necesidad de aplicar ningún filtro |
 | 5 | Vicedecana | Entra a *Reportes* y filtra por Estado = Pendiente | Aparece la misma evaluación que en el paso 4 |
 | 6 | Vicedecana | Vuelve al dashboard (`/vicedecana`) | El contador de "Evaluaciones pendientes" subió en 1 |
@@ -185,5 +195,5 @@ Si los 7 pasos se cumplen en orden, queda demostrado que la creación de estudia
 | Tipo de prueba | Técnica | Casos diseñados | Cobertura |
 |---|---|---|---|
 | Caja negra | Partición en clases de equivalencia + valores límite | 10 (formulario "Nuevo estudiante") | Todas las reglas de validación de cliente y de servidor del formulario |
-| Caja blanca | Caminos básicos (complejidad ciclomática de McCabe) | 7 (`EvaluacionesService.registrar()`) | 100% de decisiones y caminos del método |
+| Caja blanca | Caminos básicos (complejidad ciclomática de McCabe, V(G) = 8) | 8 (`EvaluacionesService.registrar()`) | 100% de decisiones y caminos del método |
 | Integración | Camino más corto (ruta feliz) | 1 escenario de 7 pasos | Alta de estudiante → evaluación → pendientes/reportes → dashboard → autoconsulta |

@@ -22,21 +22,27 @@ if (7. ¿Es profesor y no es\ndueño de la asignatura?) then (sí)
 else (no)
 endif
 
-if (9. ¿Se envió calificación\n(no undefined/null)?) then (sí)
-  if (10. ¿No es entera o\nestá fuera de 0-5?) then (sí)
-    #Mistyrose:11. 400\n"La calificación debe\nestar entre 0 y 5";
+if (9. ¿La carrera del estudiante\nno cursa la asignatura?) then (sí)
+  #Mistyrose:10. 400\n"El estudiante no pertenece a una\ncarrera que cursa esta asignatura";
+  stop
+else (no)
+endif
+
+if (11. ¿Se envió calificación\n(no undefined/null)?) then (sí)
+  if (12. ¿No es entera o\nestá fuera de 0-5?) then (sí)
+    #Mistyrose:13. 400\n"La calificación debe\nestar entre 0 y 5";
     stop
   else (no)
   endif
 else (no)
 endif
 
-if (12. ¿calificación >= 3?) then (sí)
-  #Palegreen:13a. estado = APROBADA;
+if (14. ¿calificación >= 3?) then (sí)
+  #Palegreen:15a. estado = APROBADA;
 else (no)
-  #Lightblue:13b. estado = PENDIENTE;
+  #Lightblue:15b. estado = PENDIENTE;
 endif
 
-#Palegreen:14. Guardar evaluación (upsert);
+#Palegreen:16. Guardar evaluación (upsert);
 stop
 @enduml
