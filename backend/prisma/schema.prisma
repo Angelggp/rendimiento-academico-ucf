@@ -131,6 +131,8 @@ model Evaluacion {
   asignatura   Asignatura       @relation(fields: [asignaturaId], references: [id])
   calificacion Int?
   estado       EstadoEvaluacion @default(PENDIENTE)
+  // Observación o acción correctiva que el profesor deja al evaluar (ej. "debe repetir el laboratorio").
+  observaciones String?
   fecha        DateTime         @default(now())
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt

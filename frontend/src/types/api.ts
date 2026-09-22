@@ -120,6 +120,7 @@ export interface Evaluacion {
   asignaturaId: string
   calificacion: number | null
   estado: EstadoEvaluacion
+  observaciones: string | null
   fecha: string
   createdAt: string
   updatedAt: string
@@ -194,6 +195,7 @@ export interface RegistroEvaluacionRequest {
   asignaturaId: string
   calificacion?: number | null
   fecha?: string
+  observaciones?: string | null
 }
 
 export interface CrearPerfilEstudianteRequest {

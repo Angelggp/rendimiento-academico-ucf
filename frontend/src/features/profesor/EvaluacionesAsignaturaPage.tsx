@@ -46,6 +46,7 @@ const esquema = z.object({
     .min(0, "Debe estar entre 0 y 5")
     .max(5, "Debe estar entre 0 y 5")
     .nullable(),
+  observaciones: z.string().max(1000, "Máximo 1000 caracteres").optional(),
 })
 
 interface FilaEvaluacionProps {
@@ -72,6 +73,7 @@ function FilaEvaluacion({
     resolver: zodResolver(esquema),
     defaultValues: {
       calificacion: evaluacion?.calificacion ?? null,
+      observaciones: evaluacion?.observaciones ?? "",
     },
   })
 
@@ -96,6 +98,7 @@ function FilaEvaluacion({
       estudianteId: estudiante.id,
       asignaturaId,
       calificacion: datos.calificacion,
+      observaciones: datos.observaciones?.trim() ? datos.observaciones.trim() : null,
     })
   })
 
@@ -113,54 +116,63 @@ function FilaEvaluacion({
         </div>
       </TableCell>
       <TableCell>
-        <form
-          onSubmit={alGuardar}
-          className="flex flex-wrap items-center gap-2"
-        >
-          <div className="flex flex-col gap-1">
-            <Label
-              htmlFor={`calificacion-${estudiante.id}`}
-              className="sr-only"
-            >
-              Calificación
-            </Label>
-            <Input
-              id={`calificacion-${estudiante.id}`}
-              type="number"
-              inputMode="numeric"
-              min={0}
-              max={5}
-              step={1}
-              className="w-16 text-center"
-              placeholder="Nota"
-              {...propsCalificacion}
-              onChange={(e) => {
-                onChangeCalificacion(e)
-                setNotaTexto(e.target.value)
-              }}
-              aria-invalid={!!errors.calificacion}
-            />
-            {errors.calificacion && (
-              <span className="text-destructive text-xs">
-                {errors.calificacion.message}
-              </span>
-            )}
-          </div>
-
-          <Badge variant={aprobada ? "default" : "secondary"}>
-            {etiquetaEstado}
-          </Badge>
-
-          <div className="flex flex-col gap-1">
-            <Button type="submit" size="sm" disabled={mutation.isPending}>
-              {mutation.isPending && <Loader2 className="animate-spin" />}
-              {mutation.isSuccess ? "Actualizado" : "Guardar"}
-            </Button>
-            {errorServidor && (
-              <span className="text-destructive text-xs">{errorServidor}</span>
-            )}
-          </div>
-        </form>
+        <div className="flex flex-col gap-1">
+          <Label htmlFor={`calificacion-${estudiante.id}`} className="sr-only">
+            Calificación
+          </Label>
+          <Input
+            id={`calificacion-${estudiante.id}`}
+            type="number"
+            inputMode="numeric"
+            min={0}
+            max={5}
+            step={1}
+            className="w-16 text-center"
+            placeholder="Nota"
+            {...propsCalificacion}
+            onChange={(e) => {
+              onChangeCalificacion(e)
+              setNotaTexto(e.target.value)
+            }}
+            aria-invalid={!!errors.calificacion}
+          />
+          {errors.calificacion && (
+            <span className="text-destructive text-xs">
+              {errors.calificacion.message}
+            </span>
+          )}
+        </div>
+      </TableCell>
+      <TableCell className="min-w-56">
+        <Label htmlFor={`observaciones-${estudiante.id}`} className="sr-only">
+          Observaciones o acción correctiva
+        </Label>
+        <Input
+          id={`observaciones-${estudiante.id}`}
+          placeholder="Observación o acción correctiva (opcional)"
+          {...register("observaciones")}
+        />
+        {errors.observaciones && (
+          <span className="text-destructive text-xs">
+            {errors.observaciones.message}
+          </span>
+        )}
+      </TableCell>
+      <TableCell>
+        <Badge variant={aprobada ? "default" : "secondary"}>
+          {etiquetaEstado}
+        </Badge>
+      </TableCell>
+      <TableCell>
+        <div className="flex flex-col gap-1">
+          <Button size="sm" onClick={alGuardar} disabled={mutation.isPending}>
+            {mutation.isPending && <Loader2 className="animate-spin" />}
+            {mutation.isSuccess ? "Actualizado" : "Guardar"}
+          </Button>
+          {errorServidor && (
+            <span className="text-destructive text-xs">{errorServidor}</span>
+          )}
+        </div>
       </TableCell>
     </TableRow>
   )
@@ -297,7 +309,10 @@ export function EvaluacionesAsignaturaPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Estudiante</TableHead>
-                  <TableHead>Calificación y estado</TableHead>
+                  <TableHead>Calificación</TableHead>
+                  <TableHead>Observaciones</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead>Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

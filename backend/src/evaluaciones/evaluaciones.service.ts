@@ -88,6 +88,7 @@ export class EvaluacionesService {
     asignaturaId: string;
     calificacion?: number | null;
     fecha?: Date;
+    observaciones?: string | null;
   }, usuarioActual?: any) {
     const estudiante = await this.prisma.estudiante.findUnique({
       where: { id: dto.estudianteId },
@@ -130,11 +131,13 @@ export class EvaluacionesService {
     const calificacion = dto.calificacion ?? null;
     const estado: 'APROBADA' | 'PENDIENTE' =
       calificacion !== null && calificacion >= 3 ? 'APROBADA' : 'PENDIENTE';
+    const observaciones = dto.observaciones?.trim() ? dto.observaciones.trim() : null;
     const data = {
       estudianteId: dto.estudianteId,
       asignaturaId: dto.asignaturaId,
       calificacion,
       estado,
+      observaciones,
       fecha: dto.fecha ?? new Date(),
     };
 
@@ -148,6 +151,7 @@ export class EvaluacionesService {
       update: {
         calificacion: data.calificacion,
         estado: data.estado,
+        observaciones: data.observaciones,
         fecha: data.fecha,
       },
       create: data,

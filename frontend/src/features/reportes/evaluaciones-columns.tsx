@@ -53,4 +53,16 @@ export const columnasEvaluaciones = helper.columns([
       </Badge>
     ),
   }),
+  helper.accessor((evaluacion) => evaluacion.observaciones ?? "", {
+    id: "observaciones",
+    header: "Observaciones",
+    cell: (info) =>
+      info.getValue() ? (
+        <span className="line-clamp-2 max-w-64 text-sm" title={info.getValue()}>
+          {info.getValue()}
+        </span>
+      ) : (
+        <span className="text-muted-foreground">—</span>
+      ),
+  }),
 ])

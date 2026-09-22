@@ -19,7 +19,9 @@ import {
   IsInt,
   IsNotEmpty,
   IsOptional,
+  IsString,
   IsUUID,
+  MaxLength,
   Max,
   Min,
 } from 'class-validator';
@@ -67,6 +69,11 @@ class RegistrarEvaluacionDto {
   @Type(() => Date)
   @IsDate()
   fecha?: Date;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  observaciones?: string | null;
 }
 
 @UseGuards(JwtAuthGuard, RolesGuard)
