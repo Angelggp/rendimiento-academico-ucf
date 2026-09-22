@@ -13,7 +13,6 @@ import {
   useRegistrarEvaluacion,
 } from "./use-profesor"
 import type {
-  Carrera,
   EvaluacionDetallada,
   EstudianteDetallado,
 } from "@/types/api"
@@ -184,22 +183,19 @@ export function EvaluacionesAsignaturaPage() {
 
   const asignatura = asignaturas?.find((a) => a.id === asignaturaId)
 
-  const carreras = useMemo(() => {
-    const mapa = new Map<string, Carrera>()
-    for (const estudiante of estudiantes ?? []) {
-      if (!mapa.has(estudiante.carrera.id)) {
-        mapa.set(estudiante.carrera.id, estudiante.carrera)
-      }
-    }
-    return [...mapa.values()]
-  }, [estudiantes])
+  const carreras = useMemo(() => asignatura?.carreras ?? [], [asignatura])
+
+  const elegibles = useMemo(() => {
+    const ids = new Set(carreras.map((c) => c.id))
+    return (estudiantes ?? []).filter((e) => ids.has(e.carrera.id))
+  }, [estudiantes, carreras])
 
   const visibles = useMemo(
     () =>
       carreraId
-        ? (estudiantes ?? []).filter((e) => e.carrera.id === carreraId)
-        : (estudiantes ?? []),
-    [estudiantes, carreraId],
+        ? elegibles.filter((e) => e.carrera.id === carreraId)
+        : elegibles,
+    [elegibles, carreraId],
   )
 
   const evaluacionPorEstudiante = useMemo(
@@ -273,7 +269,7 @@ export function EvaluacionesAsignaturaPage() {
           onChange={(e) => setCarreraId(e.target.value)}
           className="w-72"
         >
-          <option value="">Todas las carreras</option>
+          <option value="">Todas las carreras de la asignatura</option>
           {carreras.map((carrera) => (
             <option key={carrera.id} value={carrera.id}>
               {carrera.nombre} — Plan {carrera.plan}
@@ -288,7 +284,7 @@ export function EvaluacionesAsignaturaPage() {
         </div>
       ) : visibles.length === 0 ? (
         <div className="text-muted-foreground rounded-md border bg-muted/40 p-4 text-sm">
-          No hay estudiantes para esa carrera.
+          No hay estudiantes en las carreras que cursan esta asignatura.
         </div>
       ) : (
         <Card>

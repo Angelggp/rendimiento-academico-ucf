@@ -1,10 +1,11 @@
-import { useForm } from "react-hook-form"
+import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { useState } from "react"
 import { Loader2 } from "lucide-react"
 import { ApiError } from "@/lib/api"
 import { useCrearAsignatura, useProfesores } from "./use-asignaturas"
+import { SelectorCarreras } from "./SelectorCarreras"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -26,6 +27,9 @@ const esquema = z.object({
     .int({ message: "El semestre debe ser un entero" })
     .min(1, { message: "El semestre debe ser mayor o igual a 1" }),
   profesorId: z.string().min(1, { message: "Seleccione un profesor" }),
+  carreraIds: z
+    .array(z.string())
+    .min(1, { message: "Seleccione al menos una carrera" }),
 })
 
 type DatosFormulario = z.infer<typeof esquema>
@@ -39,16 +43,17 @@ export function CrearAsignaturaDialog() {
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors },
   } = useForm<DatosFormulario>({
     resolver: zodResolver(esquema),
-    defaultValues: { nombre: "", semestre: 1, profesorId: "" },
+    defaultValues: { nombre: "", semestre: 1, profesorId: "", carreraIds: [] },
   })
 
   const alGuardar = handleSubmit((datos) => {
     mutation.mutate(datos, {
       onSuccess: () => {
-        reset({ nombre: "", semestre: 1, profesorId: "" })
+        reset({ nombre: "", semestre: 1, profesorId: "", carreraIds: [] })
         setAbierto(false)
       },
     })
@@ -106,6 +111,18 @@ export function CrearAsignaturaDialog() {
               </p>
             )}
           </div>
+
+          <Controller
+            control={control}
+            name="carreraIds"
+            render={({ field }) => (
+              <SelectorCarreras
+                value={field.value}
+                onChange={field.onChange}
+                error={errors.carreraIds?.message}
+              />
+            )}
+          />
 
           {errorServidor && (
             <p className="text-destructive rounded-md border bg-destructive/5 p-2 text-sm">

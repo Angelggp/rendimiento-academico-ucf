@@ -99,6 +99,17 @@ export interface AsignaturaDetallada extends Asignatura {
   profesor: ProfesorConUsuario
 }
 
+export interface CarreraResumen {
+  id: string
+  nombre: string
+  plan: Plan
+  activo: boolean
+}
+
+export interface AsignaturaConCarreras extends AsignaturaDetallada {
+  carreras: CarreraResumen[]
+}
+
 export interface ProfesorConUsuario extends Profesor {
   usuario: UsuarioResumen
 }
@@ -167,6 +178,7 @@ export interface CrearAsignaturaRequest {
   nombre: string
   semestre: number
   profesorId: string
+  carreraIds: string[]
 }
 
 export interface ActualizarAsignaturaRequest {
@@ -174,6 +186,7 @@ export interface ActualizarAsignaturaRequest {
   semestre?: number
   activo?: boolean
   profesorId?: string
+  carreraIds?: string[]
 }
 
 export interface RegistroEvaluacionRequest {

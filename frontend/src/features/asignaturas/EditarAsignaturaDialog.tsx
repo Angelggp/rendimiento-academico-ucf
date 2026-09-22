@@ -1,11 +1,12 @@
-import { useForm } from "react-hook-form"
+import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { useState } from "react"
 import { Loader2, Pencil } from "lucide-react"
 import { ApiError } from "@/lib/api"
 import { useActualizarAsignatura, useProfesores } from "./use-asignaturas"
-import type { AsignaturaDetallada } from "@/types/api"
+import type { AsignaturaConCarreras } from "@/types/api"
+import { SelectorCarreras } from "./SelectorCarreras"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -27,12 +28,15 @@ const esquema = z.object({
     .int({ message: "El semestre debe ser un entero" })
     .min(1, { message: "El semestre debe ser mayor o igual a 1" }),
   profesorId: z.string().min(1, { message: "Seleccione un profesor" }),
+  carreraIds: z
+    .array(z.string())
+    .min(1, { message: "Seleccione al menos una carrera" }),
 })
 
 type DatosFormulario = z.infer<typeof esquema>
 
 interface EditarAsignaturaDialogProps {
-  asignatura: AsignaturaDetallada
+  asignatura: AsignaturaConCarreras
 }
 
 export function EditarAsignaturaDialog({ asignatura }: EditarAsignaturaDialogProps) {
@@ -43,6 +47,7 @@ export function EditarAsignaturaDialog({ asignatura }: EditarAsignaturaDialogPro
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<DatosFormulario>({
     resolver: zodResolver(esquema),
@@ -50,6 +55,7 @@ export function EditarAsignaturaDialog({ asignatura }: EditarAsignaturaDialogPro
       nombre: asignatura.nombre,
       semestre: asignatura.semestre,
       profesorId: asignatura.profesorId,
+      carreraIds: asignatura.carreras.map((c) => c.id),
     },
   })
 
@@ -118,6 +124,18 @@ export function EditarAsignaturaDialog({ asignatura }: EditarAsignaturaDialogPro
               </p>
             )}
           </div>
+
+          <Controller
+            control={control}
+            name="carreraIds"
+            render={({ field }) => (
+              <SelectorCarreras
+                value={field.value}
+                onChange={field.onChange}
+                error={errors.carreraIds?.message}
+              />
+            )}
+          />
 
           {errorServidor && (
             <p className="text-destructive rounded-md border bg-destructive/5 p-2 text-sm">

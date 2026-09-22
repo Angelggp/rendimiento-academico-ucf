@@ -2,7 +2,7 @@ import { Loader2, TriangleAlert } from "lucide-react"
 import { useActualizarAsignatura, useAsignaturas } from "./use-asignaturas"
 import { CrearAsignaturaDialog } from "./CrearAsignaturaDialog"
 import { EditarAsignaturaDialog } from "./EditarAsignaturaDialog"
-import type { AsignaturaDetallada } from "@/types/api"
+import type { AsignaturaConCarreras } from "@/types/api"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -25,7 +25,7 @@ export function AsignaturasPage() {
   const { data: asignaturas, isLoading, isError, error } = useAsignaturas()
   const actualizar = useActualizarAsignatura()
 
-  const alternarEstado = (asignatura: AsignaturaDetallada) => {
+  const alternarEstado = (asignatura: AsignaturaConCarreras) => {
     actualizar.mutate({
       id: asignatura.id,
       payload: { activo: !asignatura.activo },
@@ -65,6 +65,7 @@ export function AsignaturasPage() {
                   <TableHead>Nombre</TableHead>
                   <TableHead>Semestre</TableHead>
                   <TableHead>Profesor</TableHead>
+                  <TableHead>Carreras</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
@@ -76,9 +77,22 @@ export function AsignaturasPage() {
                       {asignatura.nombre}
                     </TableCell>
                     <TableCell>{asignatura.semestre}</TableCell>
-                    <TableCell>
+                    <TableCell className="whitespace-normal">
                       {asignatura.profesor.usuario.nombre}{" "}
                       {asignatura.profesor.usuario.apellidos}
+                    </TableCell>
+                    <TableCell className="max-w-52 whitespace-normal">
+                      <span className="flex flex-wrap gap-1">
+                        {asignatura.carreras.length > 0 ? (
+                          asignatura.carreras.map((carrera) => (
+                            <Badge key={carrera.id} variant="outline">
+                              {carrera.nombre}
+                            </Badge>
+                          ))
+                        ) : (
+                          <span className="text-muted-foreground">Sin carrera</span>
+                        )}
+                      </span>
                     </TableCell>
                     <TableCell>
                       <Badge variant={asignatura.activo ? "success" : "destructive"}>
@@ -103,7 +117,7 @@ export function AsignaturasPage() {
                 {asignaturas?.length === 0 && (
                   <TableRow>
                     <TableCell
-                      colSpan={5}
+                      colSpan={6}
                       className="text-muted-foreground py-8 text-center"
                     >
                       No hay asignaturas registradas.
