@@ -11,6 +11,22 @@ import { PrismaService } from '../prisma/prisma.service.js';
 export class UsuariosService {
   constructor(private readonly prisma: PrismaService) {}
 
+  private async validarVicedecanoUnico(idAIgnorar?: string) {
+    const existente = await this.prisma.usuario.findFirst({
+      where: {
+        rol: 'VICEDECANO',
+        activo: true,
+        ...(idAIgnorar && { id: { not: idAIgnorar } }),
+      },
+    });
+
+    if (existente) {
+      throw new BadRequestException(
+        `Ya existe un usuario con rol Vicedecano activo (${existente.email}). Deshabilítalo primero para asignar el rol a otra persona.`,
+      );
+    }
+  }
+
   async crear(dto: {
     email: string;
     password: string;
@@ -31,6 +47,10 @@ export class UsuariosService {
 
     if (usuarioExistente) {
       throw new BadRequestException('El correo ya existe');
+    }
+
+    if (dto.rol === 'VICEDECANO') {
+      await this.validarVicedecanoUnico();
     }
 
     const passwordHasheada = await bcrypt.hash(dto.password, 10);
@@ -131,6 +151,15 @@ export class UsuariosService {
       if (dto.activo === false) {
         throw new BadRequestException('No puedes deshabilitar tu propia cuenta');
       }
+    }
+
+    const rolFinal = dto.rol ?? usuarioExistente.rol;
+    const activoFinal = dto.activo ?? usuarioExistente.activo;
+    const yaEraVicedecanoActivo =
+      usuarioExistente.rol === 'VICEDECANO' && usuarioExistente.activo;
+
+    if (rolFinal === 'VICEDECANO' && activoFinal && !yaEraVicedecanoActivo) {
+      await this.validarVicedecanoUnico(id);
     }
 
     const datosActualizar: any = { ...dto };
