@@ -36,6 +36,25 @@ docker compose up -d
 
 Levanta un Postgres 16 en `localhost:5432` con las credenciales de `.env`.
 
+### Alternativa sin Docker: Postgres local + pgAdmin
+
+Si Docker no te corre pero ya tenés Postgres instalado y pgAdmin conectado a él, no hace falta tocar nada del proyecto: solo creá dentro de tu Postgres un rol y una base con **los mismos nombres que usa `docker-compose.yml`**, y `backend/.env` va a conectar sin que edites una sola línea.
+
+En pgAdmin, con tu servidor local ya conectado:
+
+1. Clic derecho en **Login/Group Roles** → **Create** → **Login/Group Role...**
+   - Pestaña **General**: Name = `rendimiento_user`
+   - Pestaña **Definition**: Password = `rendimiento_pass`
+   - Pestaña **Privileges**: activá **Can login?**
+   - Guardar.
+2. Clic derecho en **Databases** → **Create** → **Database...**
+   - Database = `rendimiento_academico`
+   - Owner = `rendimiento_user`
+   - Guardar.
+3. Listo — no edites `backend/.env`, ya apunta a `postgresql://rendimiento_user:rendimiento_pass@localhost:5432/rendimiento_academico`. Saltá el paso `docker compose up -d` y seguí directo con el paso 4 (migraciones y seed).
+
+Si preferís usar un usuario que ya tenías en tu Postgres (por ejemplo `postgres`) en vez de crear `rendimiento_user`, también sirve: creá la base con el nombre que quieras y editá `DATABASE_URL` en `backend/.env` para que coincida con tu usuario, contraseña, puerto y nombre de base reales.
+
 ## 4. Migraciones y datos de prueba
 
 ```bash
@@ -75,3 +94,4 @@ Además, los profesores extra (ej. `yamila.fernandez@ucf.edu.cu`) usan la contra
 - **El backend no conecta a la base de datos**: confirmá que `docker compose ps` muestra `rendimiento_db` como `healthy` y que `backend/.env` tiene la misma `DATABASE_URL` que `docker-compose.yml`.
 - **Puerto 3000 o 5173 ocupado**: matá el proceso que lo esté usando (`lsof -i :3000`) o cambiá el puerto en `frontend/src/lib/api.ts` (`VITE_API_URL`) / la config de Vite.
 - **Querés reiniciar todo desde cero**: `docker compose down -v` (borra el volumen de Postgres) y repetí desde el paso 3.
+- **Usando Postgres local (sin Docker) y da error de autenticación** (`password authentication failed`): confirmá que el rol `rendimiento_user` tenga **Can login?** activado en pgAdmin y que la contraseña sea exactamente `rendimiento_pass`. Si tu Postgres corre en otro puerto (no 5432), ajustá `DATABASE_URL` en `backend/.env`.
