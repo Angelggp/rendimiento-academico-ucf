@@ -56,6 +56,8 @@ Diseño de casos de prueba de caja negra, caja blanca e integración, aplicados 
 
 ## 2. Prueba de caja blanca — `EvaluacionesService.registrar()`
 
+El método `registrar()` es el que se ejecuta cuando un profesor califica a un estudiante en una de sus asignaturas: recibe el identificador del estudiante, el de la asignatura, la calificación (0 a 5) y una observación opcional, y guarda esa información como una evaluación. Si el estudiante ya tenía una evaluación registrada en esa asignatura, la actualiza en lugar de crear una nueva (es una operación de tipo *upsert*); por eso el mismo método atiende tanto el alta como la modificación de una evaluación. Antes de guardar, valida que el estudiante y la asignatura existan, que el profesor tenga permiso sobre esa asignatura, que la carrera del estudiante corresponda a una de las que cursa la asignatura y que la calificación esté en el rango permitido; y calcula automáticamente el estado de la evaluación (Aprobada si la calificación es 3 o más, Pendiente en caso contrario).
+
 ### 2.1 Código analizado
 
 ```ts
