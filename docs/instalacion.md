@@ -59,10 +59,13 @@ Si preferís usar un usuario que ya tenías en tu Postgres (por ejemplo `postgre
 
 ```bash
 cd backend
+pnpm prisma:generate # genera el cliente de Prisma (node_modules/@prisma/client)
 pnpm prisma:deploy   # aplica las migraciones existentes
 pnpm prisma:seed     # crea usuarios y datos de prueba
 cd ..
 ```
+
+`prisma:generate` es imprescindible: a diferencia de `prisma migrate dev`, `prisma migrate deploy` **no** genera el cliente de Prisma (es intencional, pensado para entornos de producción/CI). Sin ese paso, `@prisma/client` queda vacío y `prisma:seed` falla con `SyntaxError: ... does not provide an export named 'PrismaClient'`.
 
 El seed (`backend/prisma/seed.ts`) carga un conjunto de datos completo para poder probar todas las pantallas: 5 carreras (una deshabilitada), 7 profesores (uno deshabilitado), 16 asignaturas en 4 semestres, cada una asociada a las carreras que la cursan (una deshabilitada), 25 estudiantes repartidos por carrera y por los 8 municipios, y ~100 evaluaciones (~25% pendientes), siempre entre estudiantes y asignaturas de su misma carrera. Es **idempotente**: podés correrlo las veces que quieras sin que se dupliquen los datos.
 
@@ -95,3 +98,4 @@ Además, los profesores extra (ej. `yamila.fernandez@ucf.edu.cu`) usan la contra
 - **Puerto 3000 o 5173 ocupado**: matá el proceso que lo esté usando (`lsof -i :3000`) o cambiá el puerto en `frontend/src/lib/api.ts` (`VITE_API_URL`) / la config de Vite.
 - **Querés reiniciar todo desde cero**: `docker compose down -v` (borra el volumen de Postgres) y repetí desde el paso 3.
 - **Usando Postgres local (sin Docker) y da error de autenticación** (`password authentication failed`): confirmá que el rol `rendimiento_user` tenga **Can login?** activado en pgAdmin y que la contraseña sea exactamente `rendimiento_pass`. Si tu Postgres corre en otro puerto (no 5432), ajustá `DATABASE_URL` en `backend/.env`.
+- **`SyntaxError: ... does not provide an export named 'PrismaClient'`** al correr `prisma:seed`: te faltó correr `pnpm prisma:generate` antes (ver paso 4).
