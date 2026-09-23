@@ -7,6 +7,7 @@ import { Loader2, Pencil, TriangleAlert } from "lucide-react"
 import { ApiError } from "@/lib/api"
 import { useAuth } from "@/features/auth/use-auth"
 import { useCarreras } from "@/features/carreras/use-carreras"
+import { esquemaCarnetIdentidad } from "@/lib/validaciones"
 import {
   useActualizarEstudiantePropio,
   useCrearPerfilEstudiante,
@@ -56,10 +57,7 @@ import {
 
 const esquemaPerfil = z.object({
   carreraId: z.string().min(1, "Elige una carrera"),
-  carnetIdentidad: z
-    .string()
-    .trim()
-    .min(1, "El carné de identidad es obligatorio"),
+  carnetIdentidad: esquemaCarnetIdentidad,
   municipio: z.enum(
     MUNICIPIOS as unknown as readonly [Municipio, ...Municipio[]],
     { message: "Elige un municipio" },
@@ -111,6 +109,7 @@ function CamposPerfil({
         <Input
           id="carnetIdentidad"
           inputMode="numeric"
+          maxLength={11}
           placeholder="00000000000"
           {...register("carnetIdentidad")}
           aria-invalid={!!errors.carnetIdentidad}

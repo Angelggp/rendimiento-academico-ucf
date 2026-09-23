@@ -7,6 +7,27 @@ import {
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service.js';
 
+function esBisiesto(anio: number) {
+  return (anio % 4 === 0 && anio % 100 !== 0) || anio % 400 === 0;
+}
+
+// El carné de identidad cubano codifica la fecha de nacimiento en sus
+// primeros 6 dígitos (AAMMDD); si la persona nació en el año 2000 o
+// después, se le suma 40 al mes (ej. mes 41 = enero de 2000+).
+function fechaDeCarnetEsValida(carnetIdentidad: string): boolean {
+  const mesCrudo = Number(carnetIdentidad.slice(2, 4));
+  const dia = Number(carnetIdentidad.slice(4, 6));
+  const mes = mesCrudo > 40 ? mesCrudo - 40 : mesCrudo;
+  const anio = Number(carnetIdentidad.slice(0, 2)) + (mesCrudo > 40 ? 2000 : 1900);
+
+  if (mes < 1 || mes > 12) {
+    return false;
+  }
+
+  const diasPorMes = [31, esBisiesto(anio) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  return dia >= 1 && dia <= diasPorMes[mes - 1];
+}
+
 const INCLUDE_ESTUDIANTE = {
   usuario: {
     select: {
@@ -25,6 +46,14 @@ const INCLUDE_ESTUDIANTE = {
 @Injectable()
 export class EstudiantesService {
   constructor(private readonly prisma: PrismaService) {}
+
+  private validarCarnetIdentidad(carnetIdentidad: string) {
+    if (!fechaDeCarnetEsValida(carnetIdentidad)) {
+      throw new BadRequestException(
+        'El carné de identidad no corresponde a una fecha de nacimiento válida',
+      );
+    }
+  }
 
   async crear(dto: {
     email: string;
@@ -46,6 +75,8 @@ export class EstudiantesService {
     if (usuarioExistente) {
       throw new BadRequestException('El correo ya existe');
     }
+
+    this.validarCarnetIdentidad(dto.carnetIdentidad);
 
     const carnetExistente = await this.prisma.estudiante.findUnique({
       where: { carnetIdentidad: dto.carnetIdentidad },
@@ -166,6 +197,8 @@ export class EstudiantesService {
     }
 
     if (dto.carnetIdentidad && dto.carnetIdentidad !== estudiante.carnetIdentidad) {
+      this.validarCarnetIdentidad(dto.carnetIdentidad);
+
       const carnetExistente = await this.prisma.estudiante.findUnique({
         where: { carnetIdentidad: dto.carnetIdentidad },
       });
@@ -223,6 +256,8 @@ export class EstudiantesService {
     if (!dto.carreraId || !dto.carnetIdentidad || !dto.municipio) {
       throw new BadRequestException('Faltan datos del perfil del estudiante');
     }
+
+    this.validarCarnetIdentidad(dto.carnetIdentidad);
 
     const carnetExistente = await this.prisma.estudiante.findUnique({
       where: { carnetIdentidad: dto.carnetIdentidad },

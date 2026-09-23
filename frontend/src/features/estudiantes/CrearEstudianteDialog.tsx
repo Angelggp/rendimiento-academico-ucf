@@ -7,6 +7,7 @@ import { ApiError } from "@/lib/api"
 import { useCrearEstudiante } from "./use-estudiantes"
 import { useCarreras } from "@/features/carreras/use-carreras"
 import { ETIQUETA_MUNICIPIO } from "@/lib/format"
+import { esquemaCarnetIdentidad, PLACEHOLDER_TELEFONO } from "@/lib/validaciones"
 import { MUNICIPIOS, type Municipio } from "@/types/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -31,9 +32,7 @@ const esquema = z.object({
     .min(6, { message: "La contraseña debe tener al menos 6 caracteres" }),
   telefono: z.string().optional(),
   carreraId: z.string().min(1, { message: "Seleccione una carrera" }),
-  carnetIdentidad: z
-    .string()
-    .min(1, { message: "El carné de identidad es obligatorio" }),
+  carnetIdentidad: esquemaCarnetIdentidad,
   municipio: z.enum(MUNICIPIOS as unknown as readonly [Municipio, ...Municipio[]], {
     message: "Seleccione un municipio",
   }),
@@ -137,7 +136,14 @@ export function CrearEstudianteDialog() {
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
               <Label htmlFor="carnetIdentidad">Carné de identidad</Label>
-              <Input id="carnetIdentidad" {...register("carnetIdentidad")} aria-invalid={!!errors.carnetIdentidad} />
+              <Input
+                id="carnetIdentidad"
+                inputMode="numeric"
+                maxLength={11}
+                placeholder="00000000000"
+                {...register("carnetIdentidad")}
+                aria-invalid={!!errors.carnetIdentidad}
+              />
               {errors.carnetIdentidad && <p className="text-destructive text-sm">{errors.carnetIdentidad.message}</p>}
             </div>
             <div className="flex flex-col gap-2">
@@ -155,7 +161,7 @@ export function CrearEstudianteDialog() {
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="telefono">Teléfono (opcional)</Label>
-            <Input id="telefono" {...register("telefono")} />
+            <Input id="telefono" placeholder={PLACEHOLDER_TELEFONO} {...register("telefono")} />
           </div>
 
           {errorServidor && (

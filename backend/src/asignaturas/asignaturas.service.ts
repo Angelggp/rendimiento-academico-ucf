@@ -61,8 +61,8 @@ export class AsignaturasService {
       throw new BadRequestException('El nombre de la asignatura es obligatorio');
     }
 
-    if (!Number.isInteger(dto.semestre) || dto.semestre < 1) {
-      throw new BadRequestException('El semestre debe ser un número entero válido');
+    if (!Number.isInteger(dto.semestre) || dto.semestre < 1 || dto.semestre > 8) {
+      throw new BadRequestException('El semestre debe ser un número entero entre 1 y 8');
     }
 
     const profesor = await this.prisma.profesor.findUnique({ where: { id: dto.profesorId } });
@@ -91,8 +91,8 @@ export class AsignaturasService {
       throw new NotFoundException('Asignatura no encontrada');
     }
 
-    if (dto.semestre !== undefined && (!Number.isInteger(dto.semestre) || dto.semestre < 1)) {
-      throw new BadRequestException('El semestre debe ser un número entero válido');
+    if (dto.semestre !== undefined && (!Number.isInteger(dto.semestre) || dto.semestre < 1 || dto.semestre > 8)) {
+      throw new BadRequestException('El semestre debe ser un número entero entre 1 y 8');
     }
 
     if (dto.profesorId) {

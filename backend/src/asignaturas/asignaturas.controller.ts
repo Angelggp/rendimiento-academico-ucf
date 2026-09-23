@@ -22,6 +22,7 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  Max,
   Min,
 } from 'class-validator';
 
@@ -32,6 +33,7 @@ class CrearAsignaturaDto {
 
   @IsInt()
   @Min(1)
+  @Max(8)
   semestre: number;
 
   @IsUUID()
@@ -53,6 +55,7 @@ class ActualizarAsignaturaDto {
   @IsOptional()
   @IsInt()
   @Min(1)
+  @Max(8)
   semestre?: number;
 
   @IsOptional()

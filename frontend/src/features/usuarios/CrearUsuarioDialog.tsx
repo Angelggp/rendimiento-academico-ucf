@@ -4,6 +4,7 @@ import { z } from "zod"
 import { useState } from "react"
 import { Loader2 } from "lucide-react"
 import { ApiError } from "@/lib/api"
+import { PLACEHOLDER_TELEFONO } from "@/lib/validaciones"
 import { ROLES, type Rol } from "@/types/api"
 import { useCrearUsuario } from "./use-usuarios"
 import { Button } from "@/components/ui/button"
@@ -126,7 +127,7 @@ export function CrearUsuarioDialog() {
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="telefono">Teléfono (opcional)</Label>
-            <Input id="telefono" placeholder="4321 2345" {...register("telefono")} />
+            <Input id="telefono" placeholder={PLACEHOLDER_TELEFONO} {...register("telefono")} />
           </div>
 
           {rolSeleccionado !== "ADMIN" && (

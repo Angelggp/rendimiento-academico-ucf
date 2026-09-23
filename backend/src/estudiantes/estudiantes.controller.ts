@@ -19,8 +19,11 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  Matches,
   MinLength,
 } from 'class-validator';
+
+const MENSAJE_CARNET = 'El carné de identidad debe tener 11 dígitos';
 import { Municipio } from '@prisma/client';
 
 class CrearEstudianteDto {
@@ -49,7 +52,7 @@ class CrearEstudianteDto {
   carreraId: string;
 
   @IsString()
-  @IsNotEmpty()
+  @Matches(/^\d{11}$/, { message: MENSAJE_CARNET })
   carnetIdentidad: string;
 
   @IsEnum(Municipio)
@@ -66,7 +69,7 @@ class CrearPerfilEstudianteDto {
   carreraId: string;
 
   @IsString()
-  @IsNotEmpty()
+  @Matches(/^\d{11}$/, { message: MENSAJE_CARNET })
   carnetIdentidad: string;
 
   @IsEnum(Municipio)
@@ -84,7 +87,7 @@ class ActualizarEstudianteDto {
 
   @IsOptional()
   @IsString()
-  @IsNotEmpty()
+  @Matches(/^\d{11}$/, { message: MENSAJE_CARNET })
   carnetIdentidad?: string;
 
   @IsOptional()

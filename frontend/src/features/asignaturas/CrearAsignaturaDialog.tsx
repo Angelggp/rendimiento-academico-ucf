@@ -4,6 +4,7 @@ import { z } from "zod"
 import { useState } from "react"
 import { Loader2 } from "lucide-react"
 import { ApiError } from "@/lib/api"
+import { esquemaSemestre } from "@/lib/validaciones"
 import { useCrearAsignatura, useProfesores } from "./use-asignaturas"
 import { SelectorCarreras } from "./SelectorCarreras"
 import { Button } from "@/components/ui/button"
@@ -22,10 +23,7 @@ import {
 
 const esquema = z.object({
   nombre: z.string().min(1, { message: "El nombre es obligatorio" }),
-  semestre: z
-    .number({ message: "El semestre debe ser un número" })
-    .int({ message: "El semestre debe ser un entero" })
-    .min(1, { message: "El semestre debe ser mayor o igual a 1" }),
+  semestre: esquemaSemestre,
   profesorId: z.string().min(1, { message: "Seleccione un profesor" }),
   carreraIds: z
     .array(z.string())
@@ -88,6 +86,7 @@ export function CrearAsignaturaDialog() {
               id="semestre"
               type="number"
               min={1}
+              max={8}
               {...register("semestre", { valueAsNumber: true })}
               aria-invalid={!!errors.semestre}
             />
