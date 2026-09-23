@@ -1,0 +1,45 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+skinparam backgroundColor white
+skinparam usecase {
+  BackgroundColor #EAF2FB
+  BorderColor #2E5395
+  FontColor #1a1a1a
+}
+skinparam actor {
+  BorderColor #2E5395
+  FontColor #1a1a1a
+}
+
+actor "Profesor" as Profesor
+actor "Vicedecana" as Vicedecana
+actor "Estudiante" as Estudiante
+
+rectangle "CU07: Gestionar evaluación" {
+  usecase "CU07-01\nRegistrar evaluación" as UC1
+  usecase "CU07-02\nActualizar evaluación" as UC2
+  usecase "CU07-03\nConsultar evaluación" as UC3
+}
+
+Profesor --> UC1
+Profesor --> UC2
+Profesor --> UC3
+Vicedecana --> UC3
+Estudiante --> UC3
+
+note bottom of UC2
+  Se implementa con la misma operación
+  que Registrar (upsert): si ya existe una
+  evaluación para ese estudiante y esa
+  asignatura, la actualiza en vez de
+  crear una nueva.
+end note
+
+note bottom of UC3
+  Cada actor consulta un subconjunto distinto:
+  Profesor ve solo las de sus asignaturas;
+  Vicedecana ve todas (Reportes/Pendientes);
+  Estudiante ve solo las suyas.
+end note
+@enduml

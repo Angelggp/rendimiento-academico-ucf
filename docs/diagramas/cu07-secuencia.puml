@@ -1,0 +1,46 @@
+@startuml
+skinparam sequenceMessageAlign center
+skinparam backgroundColor white
+skinparam sequence {
+  ActorBorderColor #2E5395
+  LifeLineBorderColor #2E5395
+  ParticipantBorderColor #2E5395
+  ParticipantBackgroundColor #EAF2FB
+  BoxBorderColor #2E5395
+}
+
+actor Profesor
+boundary ":PanelDeEvaluaciones" as UI
+control ":EvaluacionesController" as Ctrl
+control ":EvaluacionesService" as Svc
+entity ":Evaluacion" as Eval
+
+Profesor -> UI : ingresarCalificacionYObservacion(nota, obs)
+Profesor -> UI : clic en "Guardar"
+activate UI
+
+UI -> Ctrl : POST /evaluaciones(datos)
+activate Ctrl
+Ctrl -> Svc : registrar(datos, usuarioActual)
+activate Svc
+
+alt estudiante y asignatura existen, el profesor tiene permiso,\nla carrera del estudiante cursa la asignatura\ny la calificación está entre 0 y 5
+  Svc -> Svc : calcularEstado(calificacion)
+  note right: Aprobada si calificación >= 3,\nPendiente en caso contrario
+  Svc -> Eval : upsert(datos)
+  activate Eval
+  Eval --> Svc : evaluación guardada
+  deactivate Eval
+  Svc --> Ctrl : evaluación
+  Ctrl --> UI : 200/201 OK
+  UI -> UI : actualizarFilaDelEstudiante(estado)
+  UI --> Profesor : mostrar "Actualizado" y el nuevo estado
+else alguna validación falla
+  Svc --> Ctrl : error 404 / 403 / 400\n(ver Tabla 3.5, casos CB-01 a CB-05)
+  Ctrl --> UI : error
+  UI --> Profesor : mostrar mensaje de error
+end
+deactivate Svc
+deactivate Ctrl
+deactivate UI
+@enduml

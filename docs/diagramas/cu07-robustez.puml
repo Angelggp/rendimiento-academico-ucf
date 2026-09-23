@@ -1,0 +1,46 @@
+@startuml
+left to right direction
+skinparam backgroundColor white
+skinparam defaultFontName Helvetica
+skinparam actor {
+  BorderColor #2E5395
+  FontColor #1a1a1a
+}
+skinparam boundary {
+  BorderColor #2E5395
+  BackgroundColor #EAF2FB
+  FontColor #1a1a1a
+}
+skinparam control {
+  BorderColor #2E5395
+  BackgroundColor #EAF2FB
+  FontColor #1a1a1a
+}
+skinparam entity {
+  BorderColor #2E5395
+  BackgroundColor #FFF3CD
+  FontColor #1a1a1a
+}
+skinparam arrow {
+  Color #333333
+}
+
+actor Profesor
+
+boundary "PanelDeEvaluaciones" as UI
+
+control "validarEvaluacion()" as C1
+control "guardarEvaluacion()" as C2
+
+entity "Estudiante" as E1
+entity "Asignatura" as E2
+entity "Evaluacion" as E3
+
+Profesor -- UI
+UI --> C1
+C1 --> E1
+C1 --> E2
+C1 --> C2
+C2 --> E3
+C2 --> UI
+@enduml

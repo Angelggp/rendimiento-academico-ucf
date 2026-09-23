@@ -1,0 +1,28 @@
+digraph Comunicacion {
+  rankdir=TB;
+  fontname="Helvetica";
+  node [fontname="Helvetica", shape=box, style="rounded,filled", fillcolor="#EAF2FB", color="#2E5395"];
+  edge [fontname="Helvetica", fontsize=11, color="#333333"];
+
+  Profesor [shape=none, fillcolor=none, label=<
+    <TABLE BORDER="0" CELLBORDER="0">
+      <TR><TD>&#128100;</TD></TR>
+      <TR><TD>Profesor</TD></TR>
+    </TABLE>
+  >];
+  UI [label=":PanelDeEvaluaciones"];
+  Ctrl [label=":EvaluacionesController"];
+  Svc [label=":EvaluacionesService"];
+  Eval [label=":Evaluacion", shape=ellipse];
+
+  Profesor -> UI [label="1: ingresarCalificacionYObservacion(nota, obs)"];
+  Profesor -> UI [label="2: clic en \"Guardar\""];
+  UI -> Ctrl [label="3: POST /evaluaciones(datos)"];
+  Ctrl -> Svc [label="4: registrar(datos, usuarioActual)"];
+  Svc -> Svc [label="5: calcularEstado(calificacion)"];
+  Svc -> Eval [label="6: [válido] upsert(datos)"];
+  Eval -> Svc [label="7: evaluación guardada", style=dashed];
+  Svc -> Ctrl [label="8: evaluación", style=dashed];
+  Ctrl -> UI [label="9: 200/201 OK", style=dashed];
+  UI -> Profesor [label="10: mostrar \"Actualizado\"\ny el nuevo estado", style=dashed];
+}
