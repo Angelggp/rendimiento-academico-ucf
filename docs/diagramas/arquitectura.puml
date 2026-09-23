@@ -1,0 +1,50 @@
+@startuml
+skinparam backgroundColor white
+skinparam defaultFontName Helvetica
+skinparam componentStyle rectangle
+skinparam component {
+  BackgroundColor #EAF2FB
+  BorderColor #2E5395
+}
+skinparam node {
+  BackgroundColor #F7FAFD
+  BorderColor #2E5395
+}
+skinparam database {
+  BackgroundColor #FFF3CD
+  BorderColor #2E5395
+}
+skinparam arrow {
+  Color #333333
+}
+
+node "Navegador web (cliente)" as Cliente {
+  component "Aplicación React\n(páginas por rol, formularios,\ntablas y reportes)" as SPA
+  component "TanStack Query\n(peticiones y caché)" as TQ
+}
+
+node "Servidor de aplicación (NestJS)" as Servidor {
+  component "Guardas de acceso\n(JWT y roles)" as Guardas
+  component "Controladores\n(API REST)" as Ctrl
+  component "Servicios\n(reglas de negocio)" as Svc
+  component "Prisma ORM" as Prisma
+}
+
+note right of Svc
+  Organización modular:
+  Auth, Usuarios, Carreras,
+  Estudiantes, Profesores,
+  Asignaturas y Evaluaciones
+  (cada uno con su controlador
+  y su servicio)
+end note
+
+database "PostgreSQL\n(Docker o instalación local)" as BD
+
+SPA --> TQ
+TQ --> Guardas : HTTP / JSON\n(Authorization: Bearer <JWT>)
+Guardas --> Ctrl
+Ctrl --> Svc
+Svc --> Prisma
+Prisma --> BD : SQL
+@enduml
